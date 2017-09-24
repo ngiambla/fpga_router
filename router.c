@@ -85,72 +85,93 @@ int checkForCompletion(struct chip *mchip_t, int x, int y, int cameFrom) {
 	return NOT_FOUND;
 }
 
+// int * hiltonSwitch() {
+// 	int next[3];
+// 	return next;
+// }
+
 
 void search(struct chip *mchip_t, int x, int y, int cameFrom) {
-	int size, width, shouldTrace;
+	int i, *costVec, size, width, shouldTrace, goN=0, goE=0, goW=0, goS=0;
 	struct chip mchip;
 	mchip=*mchip_t;
 	size=mchip.grid_size;
 	width=mchip.width;
-	
+
 	shouldTrace=checkForCompletion(&mchip, x, y, cameFrom);
 	if(shouldTrace==0) {
 		trace_back();
 	} else {
-		for(i=0;i<width;++i) {
-			// check east
-			if(mchip.switch_grid[x][y].e_pins[i] != UNAVAIL && cameFrom != EAST) {
+		printf("-- continuing...");
+		switch(cameFrom){
+			case NORTH:
+				costVec=mchip.switch_grid[x][y].n_pins;
+				break;
+			case SOUTH:
+				costVec=mchip.switch_grid[x][y].s_pins;
+				break;
+			case EAST:
+				costVec=mchip.switch_grid[x][y].e_pins;
+				break;
+			case WEST:
+				costVec=mchip.switch_grid[x][y].w_pins;
+				break;
+		}
 
-				if(mchip.logic_grid[x-1][y].pins[SOUTH]==TARGET){
-					*mchip_t=mchip;
-					return FOUND;
-				} 
-				if(mchip.logic_grid[x][y].pins[NORTH]==TARGET) {
-					*mchip_t=mchip;
-					return FOUND;
+		for(i=0;i<width;++i) {
+			// go west
+			if(mchip.switch_grid[x][y].e_pins[i] != UNAVAIL && cameFrom != EAST) {
+				++goW;
+				if(mchip.switch_grid[x][y].e_pins[i]==INIT || mchip.switch_grid[x][y].e_pins[i] < (*costVec+i)+INC_COST){
+					mchip.switch_grid[x][y].e_pins[i]=(*costVec+i)+INC_COST;
+				}
+				if(mchip.switch_grid[x][y+1].w_pins[i]==INIT || mchip.switch_grid[x][y+1].w_pins[i] < (*costVec+i)+INC_COST) {
+					mchip.switch_grid[x][y+1].w_pins[i]=(*costVec+i)+INC_COST;
 				}
 			}
-			//check west
+			//go east
 			if(mchip.switch_grid[x][y].w_pins[i]!= UNAVAIL && cameFrom != WEST) {
-				if(mchip.logic_grid[x-1][y-1].pins[SOUTH]==TARGET) {
-					*mchip_t=mchip;
-					return FOUND;
-				} 
-				if(mchip.logic_grid[x][y-1].pins[NORTH]==TARGET) {
-					*mchip_t=mchip;
-					return FOUND;
+				++goE;
+				if(mchip.switch_grid[x][y].w_pins[i]==INIT || mchip.switch_grid[x][y].w_pins[i] < (*costVec+i)+INC_COST){
+					mchip.switch_grid[x][y].w_pins[i]=(*costVec+i)+INC_COST;
+				}
+				if(mchip.switch_grid[x][y-1].e_pins[i]==INIT || mchip.switch_grid[x][y-1].e_pins[i] < (*costVec+i)+INC_COST) {
+					mchip.switch_grid[x][y-1].e_pins[i]=(*costVec+i)+INC_COST;
 				}
 			}
-			//check south
+			//go north
 			if(mchip.switch_grid[x][y].s_pins[i]!= UNAVAIL && cameFrom != SOUTH) {
-				if(y>0){
-					if(mchip.logic_grid[x][y-1].pins[EAST]==TARGET) {
-						*mchip_t=mchip;
-						return FOUND;							
-					} 
+				++goN;
+				if(mchip.switch_grid[x][y].s_pins[i]==INIT || mchip.switch_grid[x][y].s_pins[i] < (*costVec+i)+INC_COST){
+					mchip.switch_grid[x][y].s_pins[i]=(*costVec+i)+INC_COST;
 				}
-				if(y<size){
-					if(mchip.logic_grid[x][y].pins[WEST]==TARGET) {
-						*mchip_t=mchip;
-						return FOUND;	
-					}
+				if(mchip.switch_grid[x+1][y].n_pins[i]==INIT || mchip.switch_grid[x+1][y].n_pins[i] < (*costVec+i)+INC_COST) {
+					mchip.switch_grid[x+1][y].n_pins[i]=(*costVec+i)+INC_COST;
 				}
 			}
-			//check north
+			//go south
 			if(mchip.switch_grid[x][y].n_pins[i]!= UNAVAIL && cameFrom != NORTH) {
-				if(y>0){
-					if(mchip.logic_grid[x-1][y-1].pins[EAST]==TARGET) {
-						*mchip_t=mchip;
-						return FOUND;							
-					} 
+				++goS;
+				if(mchip.switch_grid[x][y].n_pins[i]==INIT || mchip.switch_grid[x][y].n_pins[i] < (*costVec+i)+INC_COST){
+					mchip.switch_grid[x][y].n_pins[i]=(*costVec+i)+INC_COST;
 				}
-				if(y<size){
-					if(mchip.logic_grid[x-1][y].pins[WEST]==TARGET) {
-						*mchip_t=mchip;
-						return FOUND;	
-					}
+				if(mchip.switch_grid[x-1][y].s_pins[i]==INIT || mchip.switch_grid[x-1][y].s_pins[i] < (*costVec+i)+INC_COST) {
+					mchip.switch_grid[x-1][y].n_pins[i]=(*costVec+i)+INC_COST;
 				}
 			}
+		}
+		//Continue Search...
+		if(goS > 0) {
+			search(&mchip, x-1, y, NORTH);
+		} 
+		if(goN > 0) {
+			search(&mchip, x+1, y, SOUTH);
+		}
+		if(goE > 0) {
+			search(&mchip, x, y-1, WEST);
+		}
+		if(goW > 0) {
+			search(&mchip, x, y+1, EAST);
 		}
 	}
 	*mchip_t=mchip;
