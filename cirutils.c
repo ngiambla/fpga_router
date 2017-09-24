@@ -56,17 +56,17 @@ struct chip init_circuit(char * filename, char switch_type) {
 							mchip.switch_grid[i][j].n_pins[k]=INIT;
 							mchip.switch_grid[i][j].w_pins[k]=INIT;
 							mchip.switch_grid[i][j].s_pins[k]=INIT;
-							if(i==0){
+							if(i==0) {
 								mchip.switch_grid[i][j].n_pins[k]=UNAVAIL;
 							}
 							if(i==num_of_lblocks) {
 								mchip.switch_grid[i][j].s_pins[k]=UNAVAIL;
 							}
 							if(j== 0) {
-								mchip.switch_grid[i][j].e_pins[k]=UNAVAIL;
+								mchip.switch_grid[i][j].w_pins[k]=UNAVAIL;
 							}
 							if(j == num_of_lblocks) {
-								mchip.switch_grid[i][j].w_pins[k]=UNAVAIL;
+								mchip.switch_grid[i][j].e_pins[k]=UNAVAIL;
 							}
 						}
 
@@ -84,9 +84,9 @@ struct chip init_circuit(char * filename, char switch_type) {
 								sby=atoi(line);
 								break;
 							case 2:
-								spin=atoi(line);
-								printf("{SRC} L-Block[%2d][%2d] @ Pin[%2d]\n",sbx,sby,spin);
-								mchip.logic_grid[sbx][sby].pins[atoi(line)]=SOURCE;
+								spin=atoi(line)-1;
+								printf("{SRC} L-Block[%2d][%2d] @ Pin[%2d]\n",sbx,sby,spin+1);
+								mchip.logic_grid[sbx][sby].pins[spin]=SOURCE;
 								break;
 							case 3:
 								tbx=atoi(line);
@@ -95,10 +95,13 @@ struct chip init_circuit(char * filename, char switch_type) {
 								tby=atoi(line);
 								break;
 							case 5:
-								tpin=atoi(line);
-								printf("{TRG} L-Block[%2d][%2d] @ Pin[%2d]\n",tbx,tby,tpin);
-								mchip.logic_grid[tbx][tby].pins[atoi(line)]=TARGET;
+								tpin=atoi(line)-1;
+								printf("{TRG} L-Block[%2d][%2d] @ Pin[%2d]\n",tbx,tby,tpin+1);
+								mchip.logic_grid[tbx][tby].pins[tpin]=TARGET;
 								route_path(&mchip, sbx, sby, spin, tbx, tby, tpin, switch_type);
+								
+								//read(0, NULL, 10);
+
 								setupStage=0;
 								break;
 						}
@@ -119,6 +122,7 @@ struct chip init_circuit(char * filename, char switch_type) {
 		}
 		for(i=0;i<num_of_lblocks+1;++i) {
 			for(j=0;j<num_of_lblocks+1;++j) {
+				printf("sblock[%d][%d]\n",i,j);
 				for(k=0;k<width;++k) {
 					printf("[%2d]",mchip.switch_grid[i][j].n_pins[k]);
 				}
@@ -155,3 +159,4 @@ int main(int argc, char * argv[]) {
 	free(mchip.switch_grid);
 	return 0;
 }
+
