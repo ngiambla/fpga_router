@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "cirutils.h"
+#include "router.h"
 
 
 
-struct chip init_circuit(char * filename) {
-	char line[128], check[128]; //*split;
-	int i, j, k, num_of_lblocks, width, lbx, lby, stage=0, setupStage=0;
+struct chip init_circuit(char * filename, char switch_type) {
+	char line[128], check[128];
+	int i, j, k, num_of_lblocks, width, sbx, sby, spin, tbx, tby, tpin, stage=0, setupStage=0;
 	struct chip mchip;
 	struct sblock sblck;
 	FILE *fp;
@@ -34,6 +34,7 @@ struct chip init_circuit(char * filename) {
 			}
 			else if(stage == 1) {
 				width=atoi(line);
+				mchip.width=width;
 				printf("[INFO] Channel Width [%d]\n",width);
 				sblck.e_pins=malloc(width*sizeof(int));
 				sblck.n_pins=malloc(width*sizeof(int));
@@ -44,7 +45,6 @@ struct chip init_circuit(char * filename) {
 				for(i=0;i<num_of_lblocks+1;++i) {
 					mchip.switch_grid[i]=malloc ((num_of_lblocks+1)*sizeof(sblck));
 				}
-				printf("~");
 				for(i=0;i<num_of_lblocks+1;++i) {
 					for(j=0;j<num_of_lblocks+1;++j) {
 						mchip.switch_grid[i][j].e_pins= malloc(width * sizeof(int));
@@ -52,36 +52,53 @@ struct chip init_circuit(char * filename) {
 						mchip.switch_grid[i][j].w_pins= malloc(width * sizeof(int));
 						mchip.switch_grid[i][j].s_pins= malloc(width * sizeof(int));
 						for(k=0;k<width;++k) {
-							mchip.switch_grid[i][j].e_pins[k]=0;
-							mchip.switch_grid[i][j].n_pins[k]=0;
-							mchip.switch_grid[i][j].w_pins[k]=0;
-							mchip.switch_grid[i][j].s_pins[k]=0;
+							mchip.switch_grid[i][j].e_pins[k]=INIT;
+							mchip.switch_grid[i][j].n_pins[k]=INIT;
+							mchip.switch_grid[i][j].w_pins[k]=INIT;
+							mchip.switch_grid[i][j].s_pins[k]=INIT;
+							if(i==0){
+								mchip.switch_grid[i][j].n_pins[k]=UNAVAIL;
+							}
+							if(i==num_of_lblocks) {
+								mchip.switch_grid[i][j].s_pins[k]=UNAVAIL;
+							}
+							if(j== 0) {
+								mchip.switch_grid[i][j].e_pins[k]=UNAVAIL;
+							}
+							if(j == num_of_lblocks) {
+								mchip.switch_grid[i][j].w_pins[k]=UNAVAIL;
+							}
 						}
 
 					}
 				}
+	    		printf("[INFO] Chip Ready for Analysis.\n");
 			}
 			else if(stage > 1) {
 					if(atoi(line) != -1){
 						switch(setupStage) {
 							case 0: 
-								lbx=atoi(line);
+								sbx=atoi(line);
 								break;
 							case 1:
-								lby=atoi(line);
+								sby=atoi(line);
 								break;
 							case 2:
-								printf("Setting lblock[%d][%d] as source from pin[%d]\n",lbx,lby,atoi(line));
-								mchip.logic_grid[lbx][lby].pins[atoi(line)]=SOURCE;
+								spin=atoi(line);
+								printf("{SRC} L-Block[%2d][%2d] @ Pin[%2d]\n",sbx,sby,spin);
+								mchip.logic_grid[sbx][sby].pins[atoi(line)]=SOURCE;
 								break;
 							case 3:
-								lbx=atoi(line);
+								tbx=atoi(line);
 								break;
 							case 4:
-								lby=atoi(line);
+								tby=atoi(line);
 								break;
 							case 5:
-								mchip.logic_grid[lbx][lby].pins[atoi(line)]=TARGET;
+								tpin=atoi(line);
+								printf("{TRG} L-Block[%2d][%2d] @ Pin[%2d]\n",tbx,tby,tpin);
+								mchip.logic_grid[tbx][tby].pins[atoi(line)]=TARGET;
+								route_path(&mchip, sbx, sby, spin, tbx, tby, tpin, switch_type);
 								setupStage=0;
 								break;
 						}
@@ -90,6 +107,7 @@ struct chip init_circuit(char * filename) {
 			}
 			stage++;
 	    }
+	    printf("[INFO] Analysis Complete.\n");
 		for(i=0;i<num_of_lblocks;++i) {
 			for(j=0;j<num_of_lblocks;++j) {
 				for(k=0;k<4;++k) {
@@ -97,9 +115,26 @@ struct chip init_circuit(char * filename) {
 				}
 				printf("   ");
 			}
+			printf("\n\n\n");
+		}
+		for(i=0;i<num_of_lblocks+1;++i) {
+			for(j=0;j<num_of_lblocks+1;++j) {
+				for(k=0;k<width;++k) {
+					printf("[%2d]",mchip.switch_grid[i][j].n_pins[k]);
+				}
+				for(k=0;k<width; ++k) {
+					printf("[%2d]",mchip.switch_grid[i][j].e_pins[k]);
+				}
+				for(k=0;k<width; ++k) {
+					printf("[%2d]",mchip.switch_grid[i][j].s_pins[k]);
+				}
+				for(k=0;k<width; ++k) {
+					printf("[%2d]",mchip.switch_grid[i][j].w_pins[k]);
+				}
+				printf("\n\n");
+			}
 			printf("\n");
 		}
-	    printf("[INFO] Chip Ready for Analysis.\n");
 	    fclose(fp);
 	    return mchip;
 	} else {
@@ -114,8 +149,9 @@ int main(int argc, char * argv[]) {
 	char filename[20]="circuits/";
 	struct chip mchip;
 	strcat(filename, argv[1]);
-	mchip=init_circuit(filename);
+	mchip=init_circuit(filename, argv[2][0]);
 
 	free(mchip.logic_grid);
+	free(mchip.switch_grid);
 	return 0;
 }

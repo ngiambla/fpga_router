@@ -4,6 +4,7 @@
 */
 #include <stdio.h>
 #include "graphics.h"
+#include ""
 
 char * usage="Usage ";
 // Callback functions.
@@ -16,7 +17,7 @@ void act_on_key_press (char c);
 
 
 // Main....
-int main(int agrc, char * argv[]) {
+int main(int argc, char * argv[]) {
 	return 0;
 }
 

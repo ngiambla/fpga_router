@@ -1,9 +1,17 @@
-#include <stdio.h>
 
 #define UNAVAIL -1		// For sblock
-#define TARGET -2		// For lblock
-#define SOURCE -3		// For lblock
+#define INIT -2
 
+#define TARGET -4		// For lblock
+#define SOURCE -5		// For lblock
+
+#define SOUTH 0 		// for block pins
+#define EAST 1 
+#define NORTH 2 	
+#define WEST 3 		
+
+#define WILTON 'W'		// For Wilton Switch
+#define FULL 'F'		// For Fully-Connected Switch
 
 /* lblock: Logic Block repsentation */
 // [S,E,N,W]
@@ -25,7 +33,10 @@ struct chip {
 	int width;
 	struct lblock **logic_grid;
 	struct sblock **switch_grid;
-	int * sources;
-	int * targets;
+};
+
+struct path {
+
+	struct sblock *switch_path;
 };
 
