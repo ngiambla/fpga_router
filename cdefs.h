@@ -27,16 +27,26 @@ struct sblock {
 	int * s_pins;
 };
 
+/* To Store Routes once complete. */
+struct route {
+	struct sblock *switch_path;
+};
+
+/* Expansion List for Routing */
+struct expansion_list {
+	struct sblock *sblocks;
+	int * x;
+	int * y;
+	int * entering_from;
+	int * used;
+};
+
 /* Entire Chip */
 struct chip {
 	int grid_size;
 	int width;
 	struct lblock **logic_grid;
 	struct sblock **switch_grid;
+	struct expansion_list elist;
+	//struct route *routes;
 };
-
-struct path {
-
-	struct sblock *switch_path;
-};
-

@@ -3,9 +3,9 @@
 #include <string.h>
 #include "router.h"
 
+char * usage="Usage ./cirutils -file filename -switch [f | w] -isParallel [T | F]\n";
 
-
-struct chip init_circuit(char * filename, char switch_type) {
+struct chip route_circuit(char * filename, char switch_type, char parallel) {
 	char line[128], check[128];
 	int i, j, k, num_of_lblocks, width, sbx, sby, spin, tbx, tby, tpin, stage=0, setupStage=0;
 	struct chip mchip;
@@ -41,6 +41,7 @@ struct chip init_circuit(char * filename, char switch_type) {
 				sblck.w_pins=malloc(width*sizeof(int));
 				sblck.s_pins=malloc(width*sizeof(int));
 
+				// Allocate Space for Switches
 				mchip.switch_grid =  malloc ((num_of_lblocks+1)*sizeof(sblck));
 				for(i=0;i<num_of_lblocks+1;++i) {
 					mchip.switch_grid[i]=malloc ((num_of_lblocks+1)*sizeof(sblck));
@@ -72,6 +73,21 @@ struct chip init_circuit(char * filename, char switch_type) {
 
 					}
 				}
+				//Allocate Space for Expansion List
+				mchip.elist.sblocks = malloc ((num_of_lblocks+1)*(num_of_lblocks+1) * sizeof(sblck));
+				mchip.elist.x= malloc((num_of_lblocks+1)*(num_of_lblocks+1) * sizeof(int));
+				mchip.elist.y= malloc((num_of_lblocks+1)*(num_of_lblocks+1) * sizeof(int));
+				mchip.elist.entering_from=malloc((num_of_lblocks+1)*(num_of_lblocks+1) * sizeof(int));
+				mchip.elist.used= malloc((num_of_lblocks+1)*(num_of_lblocks+1) * sizeof(int));
+
+				printf("################################################\n");
+				printf("Process Parallel? [%c]\n",parallel);
+				if(switch_type=='w') {
+					printf("-- Using Wilton-Style Switch\n");
+				} else {
+					printf("-- Using Fully-Connected Switch\n");		
+				}
+				printf("################################################\n");
 	    		printf("[INFO] Chip Ready for Analysis.\n");
 			}
 			else if(stage > 1) {
@@ -85,7 +101,7 @@ struct chip init_circuit(char * filename, char switch_type) {
 								break;
 							case 2:
 								spin=atoi(line)-1;
-								printf("{SRC} L-Block[%2d][%2d] @ Pin[%2d]\n",sbx,sby,spin+1);
+								printf("[SRC] L-Block[%2d][%2d] @ Pin[%2d]\n",sbx,sby,spin+1);
 								mchip.logic_grid[sbx][sby].pins[spin]=SOURCE;
 								break;
 							case 3:
@@ -96,10 +112,9 @@ struct chip init_circuit(char * filename, char switch_type) {
 								break;
 							case 5:
 								tpin=atoi(line)-1;
-								printf("{TRG} L-Block[%2d][%2d] @ Pin[%2d]\n",tbx,tby,tpin+1);
+								printf("[TRG] L-Block[%2d][%2d] @ Pin[%2d]\n+--------------------------------------+\n",tbx,tby,tpin+1);
 								mchip.logic_grid[tbx][tby].pins[tpin]=TARGET;
-								route_path(&mchip, sbx, sby, spin, tbx, tby, tpin, switch_type);
-								PATH_FOUND=0;
+								route_path(&mchip, sbx, sby, spin, tbx, tby, tpin, switch_type, parallel);
 									for(i=0;i<num_of_lblocks+1;++i) {
 										for(j=0;j<num_of_lblocks+1;++j) {
 											printf("sblock[%d][%d]\n",i,j);
@@ -119,6 +134,7 @@ struct chip init_circuit(char * filename, char switch_type) {
 										}
 										printf("\n");
 									}
+								reset_router(&mchip);
 								read(0, NULL, 10);
 
 								setupStage=0;
@@ -168,14 +184,29 @@ struct chip init_circuit(char * filename, char switch_type) {
 
 
 int main(int argc, char * argv[]) {
-	int i,j;
+
 	char filename[20]="circuits/";
 	struct chip mchip;
-	strcat(filename, argv[1]);
-	mchip=init_circuit(filename, argv[2][0]);
 
-	free(mchip.logic_grid);
-	free(mchip.switch_grid);
+	if(argc < 7 || argc > 7) {
+		printf("%s", usage);
+		exit(-1);
+	} else if(argv[4][0] != 'w' && argv[4][0] != 'f') {
+		printf("%s", usage);
+		exit(-2);
+	} else if(argv[6][0] != 'T' && argv[6][0] != 'F') {
+		printf("%s", usage);
+		exit(-3);
+	} else {
+		strcat(filename, argv[2]);
+		mchip=route_circuit(filename, argv[4][0], argv[6][0]);
+		free(mchip.logic_grid);
+		free(mchip.switch_grid);
+		free(mchip.elist.sblocks);
+		free(mchip.elist.x);
+		free(mchip.elist.y);
+		free(mchip.elist.used);
+	}
 	return 0;
 }
 
