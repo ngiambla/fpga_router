@@ -74,11 +74,11 @@ struct chip route_circuit(char * filename, char switch_type, char parallel) {
 					}
 				}
 				//Allocate Space for Expansion List
-				mchip.elist.sblocks = malloc ((num_of_lblocks+1)*(num_of_lblocks+1) * sizeof(sblck));
-				mchip.elist.x= malloc((num_of_lblocks+1)*(num_of_lblocks+1) * sizeof(int));
-				mchip.elist.y= malloc((num_of_lblocks+1)*(num_of_lblocks+1) * sizeof(int));
-				mchip.elist.entering_from=malloc((num_of_lblocks+1)*(num_of_lblocks+1) * sizeof(int));
-				mchip.elist.used= malloc((num_of_lblocks+1)*(num_of_lblocks+1) * sizeof(int));
+				// mchip.elist.sblocks = malloc ((num_of_lblocks+1)*(num_of_lblocks+1) * sizeof(sblck));
+				// mchip.elist.x= malloc((num_of_lblocks+1)*(num_of_lblocks+1) * sizeof(int));
+				// mchip.elist.y= malloc((num_of_lblocks+1)*(num_of_lblocks+1) * sizeof(int));
+				// mchip.elist.entering_from=malloc((num_of_lblocks+1)*(num_of_lblocks+1) * sizeof(int));
+				// mchip.elist.used= malloc((num_of_lblocks+1)*(num_of_lblocks+1) * sizeof(int));
 
 				printf("################################################\n");
 				printf("Process Parallel? [%c]\n",parallel);
@@ -118,15 +118,19 @@ struct chip route_circuit(char * filename, char switch_type, char parallel) {
 									for(i=0;i<num_of_lblocks+1;++i) {
 										for(j=0;j<num_of_lblocks+1;++j) {
 											printf("sblock[%d][%d]\n",i,j);
+											printf("<N>");
 											for(k=0;k<width;++k) {
 												printf("[%2d]",mchip.switch_grid[i][j].n_pins[k]);
 											}
+											printf(" <E>");
 											for(k=0;k<width; ++k) {
 												printf("[%2d]",mchip.switch_grid[i][j].e_pins[k]);
 											}
+											printf(" <S>");
 											for(k=0;k<width; ++k) {
 												printf("[%2d]",mchip.switch_grid[i][j].s_pins[k]);
 											}
+											printf(" <W>");											
 											for(k=0;k<width; ++k) {
 												printf("[%2d]",mchip.switch_grid[i][j].w_pins[k]);
 											}
@@ -202,10 +206,6 @@ int main(int argc, char * argv[]) {
 		mchip=route_circuit(filename, argv[4][0], argv[6][0]);
 		free(mchip.logic_grid);
 		free(mchip.switch_grid);
-		free(mchip.elist.sblocks);
-		free(mchip.elist.x);
-		free(mchip.elist.y);
-		free(mchip.elist.used);
 	}
 	return 0;
 }

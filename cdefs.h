@@ -33,12 +33,10 @@ struct route {
 };
 
 /* Expansion List for Routing */
-struct expansion_list {
-	struct sblock *sblocks;
+struct elist {
 	int * x;
 	int * y;
-	int * entering_from;
-	int * used;
+	int * entered;
 };
 
 /* Entire Chip */
@@ -47,6 +45,6 @@ struct chip {
 	int width;
 	struct lblock **logic_grid;
 	struct sblock **switch_grid;
-	struct expansion_list elist;
+	//struct expansion_list elist;
 	//struct route *routes;
 };
