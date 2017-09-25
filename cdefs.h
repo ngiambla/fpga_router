@@ -1,6 +1,6 @@
 
-#define UNAVAIL -1		// For sblock
-#define INIT -2
+#define UNAVAIL -3		// For sblock
+#define INIT -1
 
 #define TARGET -4		// For lblock
 #define SOURCE -5		// For lblock
@@ -45,6 +45,4 @@ struct chip {
 	int width;
 	struct lblock **logic_grid;
 	struct sblock **switch_grid;
-	//struct expansion_list elist;
-	//struct route *routes;
 };
