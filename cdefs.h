@@ -1,6 +1,7 @@
 
 #define UNAVAIL -3		// For sblock
 #define INIT -1
+#define USED -44
 
 #define TARGET -4		// For lblock
 #define SOURCE -5		// For lblock

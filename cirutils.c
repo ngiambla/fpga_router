@@ -37,17 +37,17 @@ void display_switch_config(struct chip mchip) {
 void free_memory(struct chip mchip) {
 	int i,j,k,num_of_lblocks=mchip.grid_size, width=mchip.width;
 
-	for(i=0;i<num_of_lblocks+1;++i) {
-		for(j=0;j<num_of_lblocks+1;++j) {
-			free(mchip.logic_grid[i][j].pins);
-			free(mchip.switch_grid[i][j].n_pins);
-			free(mchip.switch_grid[i][j].e_pins);
-			free(mchip.switch_grid[i][j].s_pins);
-			free(mchip.switch_grid[i][j].w_pins);
-		}
-		free(mchip.logic_grid[i]);
-		free(mchip.switch_grid[i]);
-	}
+	// for(i=0;i<num_of_lblocks+1;++i) {
+	// 	for(j=0;j<num_of_lblocks+1;++j) {
+	// 		// free(mchip.logic_grid[i][j].pins);
+	// 		// free(mchip.switch_grid[i][j].n_pins);
+	// 		// free(mchip.switch_grid[i][j].e_pins);
+	// 		// free(mchip.switch_grid[i][j].s_pins);
+	// 		// free(mchip.switch_grid[i][j].w_pins);
+	// 	}
+	// 	free(mchip.logic_grid[i]);
+	// 	free(mchip.switch_grid[i]);
+	// }
 	free(mchip.logic_grid);
 	free(mchip.switch_grid);
 }
