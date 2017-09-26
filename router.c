@@ -3,7 +3,9 @@
 //#include <signal.h>
 #include "router.h"
 
-
+/* function reset_connections()
+ * -- resets all unused connections
+ */
 void reset_connections(struct chip *mchip_t) {
 	int size, width;
 	struct chip mchip;
@@ -152,17 +154,17 @@ int checkForCompletion(struct chip *mchip_t, int x, int y, int cameFrom) {
 	return NOT_FOUND;
 }
 
-// void internal_sblock_route(char switch_type, struct chip *mchip_t, x, y, ) {
-// 	struct chip mchip;
-// 	mchip=*mchip_t;
-// 	switch(switch_type) {
-// 		case 'w':
-// 			break;
-// 		case 'f':
-// 			break;
-// 	}
-// 	*mchip_t=mchip;
-// }
+void internal_sblock_route(char switch_type, struct chip *mchip_t, int x, int y ) {
+	struct chip mchip;
+	mchip=*mchip_t;
+	switch(switch_type) {
+		case 'w':
+			break;
+		case 'f':
+			break;
+	}
+	*mchip_t=mchip;
+}
 
 struct elist init_elst(int size) {
 	int size_sq=size*size;
