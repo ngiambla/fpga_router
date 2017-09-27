@@ -142,19 +142,37 @@ struct chip route_circuit(char * filename, char switch_type, char parallel) {
 
 					for(i=0; i< width; ++i) {
 						//w-to-n
-						switch_w.w_to_n[i]=(width-i)%width;
+						// switch_w.w_to_n[i]=(width-i)%width;
+						// switch_w.n_to_w[switch_w.w_to_n[i]]=i;
+
+						// //n-to-e
+						// switch_w.n_to_e[i]=(i+1)%width;
+						// switch_w.e_to_n[switch_w.n_to_e[i]]=i;
+
+						// //e-to-s
+						// switch_w.e_to_s[i]=(2*width-2-i)%width;
+						// switch_w.s_to_e[switch_w.e_to_s[i]]=i;
+
+						// //s-to-w
+						// switch_w.s_to_w[i]=(i+1)%width;
+						// switch_w.w_to_s[switch_w.s_to_w[i]]=i;
+
+						/* Due to Mapping Config, the rotated geometry changes the wilton switch */
+
+						//w-to-n
+						switch_w.w_to_n[i]=(i+1)%width;
 						switch_w.n_to_w[switch_w.w_to_n[i]]=i;
 
 						//n-to-e
-						switch_w.n_to_e[i]=(i+1)%width;
+						switch_w.n_to_e[i]=(width-i)%width;
 						switch_w.e_to_n[switch_w.n_to_e[i]]=i;
 
 						//e-to-s
-						switch_w.e_to_s[i]=(2*width-2-i)%width;
+						switch_w.e_to_s[i]=(i+1)%width;
 						switch_w.s_to_e[switch_w.e_to_s[i]]=i;
 
 						//s-to-w
-						switch_w.s_to_w[i]=(i+1)%width;
+						switch_w.s_to_w[i]=(2*width-2-i)%width;
 						switch_w.w_to_s[switch_w.s_to_w[i]]=i;
 
 					}
