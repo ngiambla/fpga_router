@@ -54,6 +54,11 @@ void trace_back(struct chip *mchip_t) {
 	mchip=*mchip_t;
 	PATH_FOUND=1;
 	printf("-- Trace Back Instantiated.\n");
+	if(mchip.switch_type == 'f') {
+
+	} else {
+
+	}
 	*mchip_t=mchip;
 }
 
@@ -154,18 +159,6 @@ int checkForCompletion(struct chip *mchip_t, int x, int y, int cameFrom) {
 	return NOT_FOUND;
 }
 
-void internal_sblock_route(char switch_type, struct chip *mchip_t, int x, int y ) {
-	struct chip mchip;
-	mchip=*mchip_t;
-	switch(switch_type) {
-		case 'w':
-			break;
-		case 'f':
-			break;
-	}
-	*mchip_t=mchip;
-}
-
 struct elist init_elst(int size) {
 	int size_sq=size*size;
 	struct elist elst;
@@ -194,16 +187,17 @@ int add_to_queue(struct elist *elst_t, int x, int y, int src, int tail ) {
 
 void search_s(struct chip *mchip_t, int x1, int y1, int src1, int x2, int y2, int src2) {
 
-	int i, tail=0, curr=0, size, width, *costVec, x, y, cameFrom;
+	int i, tail=0, curr=0, size, width, *costVec, x, y, cameFrom, whereTo;
 	int goN=0, goE=0, goW=0, goS=0;
 	int goN2=0, goE2=0, goW2=0, goS2=0;
 	struct chip mchip;
 	struct elist elst; // to hold the relevant searches in expansion list.
+	struct wilton_switch w_map;
 
 	mchip=*mchip_t;
 	size=mchip.grid_size;
 	width=mchip.width;
-
+	w_map=mchip.switch_w;
 	//init the elist;
 	elst=init_elst(size);
 	for(i=0; i<size*size;++i) {
@@ -235,6 +229,7 @@ void search_s(struct chip *mchip_t, int x1, int y1, int src1, int x2, int y2, in
 
 		if(0==checkForCompletion(&mchip, x, y, cameFrom)){
 			printf("-- Found Path: Press Any Key to Traceback.\n\n");
+			trace_back(&mchip);
 			read(0,NULL,1);
 			break;
 		}
@@ -264,90 +259,184 @@ void search_s(struct chip *mchip_t, int x1, int y1, int src1, int x2, int y2, in
 		for(i=0;i<width;++i){
 			printf("[%d]",costVec[i]);
 			if(costVec[i]== UNAVAIL) {
-				printf("\n[ERR] -- Accessed unaccessible lines @sblock[%d][%d], heading [%d]\n",x, y, cameFrom);
-				exit(0);
+				// printf("\n[ERR] -- Accessed unaccessible lines @sblock[%d][%d], heading [%d]\n",x, y, cameFrom);
+				// exit(0);
+				printf("[INFO] Found existing path @ sblock[%d][%d], heading [%d]\n",x, y, cameFrom);
 			}
 		}
 		printf("\n");
 
-		for(i=0;i<width;++i) {
-			// go east
-			if(y+1 <= size){
-				if(mchip.switch_grid[x][y+1].w_pins[i] != UNAVAIL && mchip.switch_grid[x][y].e_pins[i] != UNAVAIL && cameFrom != WEST) {
-					if(mchip.switch_grid[x][y].e_pins[i]==INIT || (mchip.switch_grid[x][y].e_pins[i] < *(costVec+i)+INC_COST)) {
-						goW=2;
-					}
-					if(mchip.switch_grid[x][y+1].w_pins[i]==INIT || (mchip.switch_grid[x][y+1].w_pins[i] < *(costVec+i)+INC_COST)) {
-						goW2=1;
+		if(mchip.switch_type == 'f'){
+			for(i=0;i<width;++i) {
+				// go east
+				if(y+1 <= size){
+					if(mchip.switch_grid[x][y+1].w_pins[i] != UNAVAIL && mchip.switch_grid[x][y].e_pins[i] != UNAVAIL && cameFrom != WEST) {
+						if(mchip.switch_grid[x][y].e_pins[i]==INIT || (mchip.switch_grid[x][y].e_pins[i] < *(costVec+i)+INC_COST)) {
+							goW=2;
+						}
+						if(mchip.switch_grid[x][y+1].w_pins[i]==INIT || (mchip.switch_grid[x][y+1].w_pins[i] < *(costVec+i)+INC_COST)) {
+							goW2=1;
+						}
 					}
 				}
-			}
 
-			//go west
-			if(y-1>=0) {
-				if(mchip.switch_grid[x][y-1].e_pins[i] != UNAVAIL && mchip.switch_grid[x][y].w_pins[i]!= UNAVAIL && cameFrom != EAST) {
-					if(mchip.switch_grid[x][y].w_pins[i]==INIT || (mchip.switch_grid[x][y].w_pins[i] < *(costVec+i)+INC_COST)) {
-						goE=2;
-					}
-					if(mchip.switch_grid[x][y-1].e_pins[i]==INIT || (mchip.switch_grid[x][y-1].e_pins[i] < *(costVec+i)+INC_COST)) {
-						goE2=1;
+				//go west
+				if(y-1>=0) {
+					if(mchip.switch_grid[x][y-1].e_pins[i] != UNAVAIL && mchip.switch_grid[x][y].w_pins[i]!= UNAVAIL && cameFrom != EAST) {
+						if(mchip.switch_grid[x][y].w_pins[i]==INIT || (mchip.switch_grid[x][y].w_pins[i] < *(costVec+i)+INC_COST)) {
+							goE=2;
+						}
+						if(mchip.switch_grid[x][y-1].e_pins[i]==INIT || (mchip.switch_grid[x][y-1].e_pins[i] < *(costVec+i)+INC_COST)) {
+							goE2=1;
+						}
 					}
 				}
-			}
 
-			//go south
-			if(x+1 <=size) {
-				if(mchip.switch_grid[x+1][y].n_pins[i]!= UNAVAIL && mchip.switch_grid[x][y].s_pins[i]!= UNAVAIL && cameFrom != SOUTH) {
-					if(mchip.switch_grid[x][y].s_pins[i]==INIT || (mchip.switch_grid[x][y].s_pins[i] < *(costVec+i)+INC_COST)) {
-						goS=2;
-					}
-					if(mchip.switch_grid[x+1][y].n_pins[i]==INIT || (mchip.switch_grid[x+1][y].n_pins[i] < *(costVec+i)+INC_COST)) {
-						goS2=1;
+				//go south
+				if(x+1 <=size) {
+					if(mchip.switch_grid[x+1][y].n_pins[i]!= UNAVAIL && mchip.switch_grid[x][y].s_pins[i]!= UNAVAIL && cameFrom != SOUTH) {
+						if(mchip.switch_grid[x][y].s_pins[i]==INIT || (mchip.switch_grid[x][y].s_pins[i] < *(costVec+i)+INC_COST)) {
+							goS=2;
+						}
+						if(mchip.switch_grid[x+1][y].n_pins[i]==INIT || (mchip.switch_grid[x+1][y].n_pins[i] < *(costVec+i)+INC_COST)) {
+							goS2=1;
+						}
 					}
 				}
-			}
 
-			//go north
-			if(x-1>=0) {
-				if(mchip.switch_grid[x-1][y].s_pins[i] != UNAVAIL && mchip.switch_grid[x][y].n_pins[i]!= UNAVAIL && cameFrom != NORTH) {
-					if(mchip.switch_grid[x][y].n_pins[i]==INIT || (mchip.switch_grid[x][y].n_pins[i] < *(costVec+i)+INC_COST)) {
-						goN=2;
-					}
-					if(mchip.switch_grid[x-1][y].s_pins[i]==INIT || (mchip.switch_grid[x-1][y].s_pins[i] < *(costVec+i)+INC_COST)) {
-						goN2=1;
+				//go north
+				if(x-1>=0) {
+					if(mchip.switch_grid[x-1][y].s_pins[i] != UNAVAIL && mchip.switch_grid[x][y].n_pins[i]!= UNAVAIL && cameFrom != NORTH) {
+						if(mchip.switch_grid[x][y].n_pins[i]==INIT || (mchip.switch_grid[x][y].n_pins[i] < *(costVec+i)+INC_COST)) {
+							goN=2;
+						}
+						if(mchip.switch_grid[x-1][y].s_pins[i]==INIT || (mchip.switch_grid[x-1][y].s_pins[i] < *(costVec+i)+INC_COST)) {
+							goN2=1;
+						}
 					}
 				}
 			}
-			
+		} else {
+			for(i=0; i<width ; ++i) {
+				switch(cameFrom){
+					case NORTH:
+						// head east 
+						if(y+1 <= size){
+							if(mchip.switch_grid[x][y].s_pins[i] != UNAVAIL) {
+								if((mchip.switch_grid[x][y].e_pins[w_map.s_to_e[i]] == INIT || mchip.switch_grid[x][y].e_pins[w_map.s_to_e[i]] < costVec[i]+INC_COST) && mchip.switch_grid[x][y+1].w_pins[i] != UNAVAIL) {
+									mchip.switch_grid[x][y].e_pins[w_map.s_to_e[i]]=costVec[i];
+									mchip.switch_grid[x][y+1].w_pins[i]=costVec[i];
+								}
+							}
+						}
+						// head west
+						if(y-1>=0) {
+							if(mchip.switch_grid[x][y].e_pins[i] != UNAVAIL) {
+								if((mchip.switch_grid[x][y]._pins)) {
+
+								}
+							}
+
+						}
+						// head south
+						if(x+1 <=size) {
+
+						}
+
+
+						break;
+					case SOUTH:
+						// head north
+						if(x-1>=0) {
+
+						}
+						// head east 
+						if(y+1 <= size){
+
+						}
+						// head west
+						if(y-1>=0) {
+
+						}
+						break;
+					case EAST:
+						// head north
+						if(x-1>=0) {
+
+						}
+						// head west
+						if(y-1>=0) {
+
+						}
+						// head south
+						if(x+1 <=size) {
+
+						}
+						break;
+					case WEST:
+						// head north
+						if(x-1>=0) {
+
+						}
+						// head east 
+						if(y+1 <= size){
+
+						}
+
+						// head south
+						if(x+1 <=size) {
+
+						}
+						break;
+				}
+			}
 		}
+
 
 		//Continue Search...
 		if(goN-1 == goN2) {
 			tail=add_to_queue(&elst,x-1,y,NORTH,tail);
-			for(i=0;i<width;++i) {
-				mchip.switch_grid[x][y].n_pins[i]=costVec[i]+INC_COST;
-				mchip.switch_grid[x-1][y].s_pins[i]=costVec[i]+INC_COST;
+			if(mchip.switch_type == 'f') {
+				for(i=0;i<width;++i) {
+					mchip.switch_grid[x][y].n_pins[i]=costVec[i]+INC_COST;
+					mchip.switch_grid[x-1][y].s_pins[i]=costVec[i]+INC_COST;
+				}
+			} else {
+				printf("..-*\n");
 			}
 		} 
 		if(goS-1 == goS2) {
 			tail=add_to_queue(&elst,x+1,y,SOUTH,tail);
-			for(i=0;i<width;++i) {
-				mchip.switch_grid[x][y].s_pins[i]=costVec[i]+INC_COST;
-				mchip.switch_grid[x+1][y].n_pins[i]=costVec[i]+INC_COST;
+			if(mchip.switch_type == 'f') {
+				for(i=0;i<width;++i) {
+					mchip.switch_grid[x][y].s_pins[i]=costVec[i]+INC_COST;
+					mchip.switch_grid[x+1][y].n_pins[i]=costVec[i]+INC_COST;
+				}
+			} else {
+				printf("..-*\n");
+
 			}
 		}
 		if(goE-1 == goE2) {
 			tail=add_to_queue(&elst,x,y-1,WEST,tail);
-			for(i=0;i<width;++i) {
-				mchip.switch_grid[x][y-1].e_pins[i]=costVec[i]+INC_COST;
-				mchip.switch_grid[x][y].w_pins[i]=costVec[i]+INC_COST;
+			if(mchip.switch_type == 'f') {
+				for(i=0;i<width;++i) {
+					mchip.switch_grid[x][y-1].e_pins[i]=costVec[i]+INC_COST;
+					mchip.switch_grid[x][y].w_pins[i]=costVec[i]+INC_COST;
+				}
+			} else {
+				printf("..-*\n");
 			}
 		}
 		if(goW-1 == goW2) {
 			tail=add_to_queue(&elst,x,y+1,EAST,tail);
-			for(i=0;i<width;++i) {
-				mchip.switch_grid[x][y+1].w_pins[i]=costVec[i]+INC_COST;
-				mchip.switch_grid[x][y].e_pins[i]=costVec[i]+INC_COST;
+			if(mchip.switch_type == 'f') {
+				for(i=0;i<width;++i) {
+					mchip.switch_grid[x][y+1].w_pins[i]=costVec[i]+INC_COST;
+					mchip.switch_grid[x][y].e_pins[i]=costVec[i]+INC_COST;
+				}
+			} else {
+				printf("..-*\n");
 			}
 		}
 		++curr;
@@ -495,7 +584,7 @@ void begin_search(struct chip *mchip_t, int src_x, int src_y, int src_pin, char 
 						trace_back(&mchip);
 					} else {
 						search_s(&mchip, src_x, src_y, WEST, src_x, src_y+1, EAST);
-						trace_back(&mchip);
+						//trace_back(&mchip);
 					}
 				}
 			break;
@@ -519,7 +608,7 @@ void begin_search(struct chip *mchip_t, int src_x, int src_y, int src_pin, char 
 						trace_back(&mchip);
 					} else {
 						search_s(&mchip, src_x+1, src_y+1, SOUTH, src_x, src_y+1, NORTH);
-						trace_back(&mchip);
+						//trace_back(&mchip);
 					}
 				}
 			break;
@@ -543,7 +632,7 @@ void begin_search(struct chip *mchip_t, int src_x, int src_y, int src_pin, char 
 						trace_back(&mchip);
 					} else {
 						search_s(&mchip, src_x+1, src_y, EAST, src_x+1, src_y+1, WEST);
-						trace_back(&mchip);
+						//trace_back(&mchip);
 					}
 				}
 			break;
@@ -567,7 +656,7 @@ void begin_search(struct chip *mchip_t, int src_x, int src_y, int src_pin, char 
 						trace_back(&mchip);
 					} else {
 						search_s(&mchip, src_x, src_y, NORTH, src_x+1, src_y, SOUTH);
-						trace_back(&mchip);
+						//trace_back(&mchip);
 					}
 				}
 			break;
@@ -583,7 +672,7 @@ int reset_router(struct chip *mchip_t) {
 	return 0; // change to status;
 }
 
-int route_path(struct chip *mchip_t, int src_x, int src_y, int src_pin, int targ_x, int targ_y, int targ_pin, char switch_type, char is_parallel) {
+int route_path(struct chip *mchip_t, int src_x, int src_y, int src_pin, int targ_x, int targ_y, int targ_pin, char is_parallel) {
 
 	printf("[INFO] --Beginning Path Search\n");
 	begin_search(mchip_t, src_x,src_y,src_pin, is_parallel);

@@ -48,6 +48,7 @@ struct chip route_circuit(char * filename, char switch_type, char parallel) {
 	int i, j, k, num_of_lblocks, width, sbx, sby, spin, tbx, tby, tpin, stage=0, setupStage=0;
 	struct chip mchip;
 	struct sblock sblck;
+	struct wilton_switch switch_w;
 	FILE *fp;
 
 
@@ -116,8 +117,56 @@ struct chip route_circuit(char * filename, char switch_type, char parallel) {
 				printf("Process Parallel? [%c]\n",parallel);
 				if(switch_type=='w') {
 					printf("-- Using Wilton-Style Switch\n");
+					// Implement Wilton Switch...
+					/*
+						int * w_to_n;
+						int * n_to_w;
+						int * n_to_e;
+						int * e_to_n;
+						int * e_to_s;
+						int * s_to_e;
+						int * s_to_w;
+						int * w_to_s;
+					*/
+					switch_w.w_to_n=malloc(width*sizeof(int));
+					switch_w.n_to_w=malloc(width*sizeof(int));
+
+					switch_w.n_to_e=malloc(width*sizeof(int));
+					switch_w.e_to_n=malloc(width*sizeof(int));
+
+					switch_w.e_to_s=malloc(width*sizeof(int));
+					switch_w.s_to_e=malloc(width*sizeof(int));
+
+					switch_w.s_to_w=malloc(width*sizeof(int));
+					switch_w.w_to_s=malloc(width*sizeof(int));
+
+					for(i=0; i< width; ++i) {
+						//w-to-n
+						switch_w.w_to_n[i]=(width-i)%width;
+						switch_w.n_to_w[switch_w.w_to_n[i]]=i;
+
+						//n-to-e
+						switch_w.n_to_e[i]=(i+1)%width;
+						switch_w.e_to_n[switch_w.n_to_e[i]]=i;
+
+						//e-to-s
+						switch_w.e_to_s[i]=(2*width-2-i)%width;
+						switch_w.s_to_e[switch_w.e_to_s[i]]=i;
+
+						//s-to-w
+						switch_w.s_to_w[i]=(i+1)%width;
+						switch_w.w_to_s[switch_w.s_to_w[i]]=i;
+
+					}
+					mchip.switch_w=switch_w;
+					mchip.switch_type=switch_type;
+					printf("[i] [n-w] [w-n] -- [n-e] [e-n] -- [e-s] [s-e] -- [s-w] [w-s]\n");
+					for(i=0;i<width; ++i) {
+printf("[%d] [ %d ] [ %d ] -- [ %d ] [ %d ] -- [ %d ] [ %d ] -- [ %d ] [ %d ]\n",i, switch_w.w_to_n[i], switch_w.n_to_w[i], switch_w.n_to_e[i], switch_w.e_to_n[i], switch_w.e_to_s[i], switch_w.s_to_e[i], switch_w.s_to_w[i], switch_w.w_to_s[i]);
+					}
 				} else {
-					printf("-- Using Fully-Connected Switch\n");		
+					printf("-- Using Fully-Connected Switch\n");
+					mchip.switch_type=switch_type;
 				}
 				printf("################################################\n");
 	    		printf("[INFO] Chip Ready for Analysis.\n");
@@ -147,7 +196,7 @@ struct chip route_circuit(char * filename, char switch_type, char parallel) {
 								tpin=atoi(token)-1;
 								printf("[TRG] L-Block[%2d][%2d] @ Pin[%2d]\n+--------------------------------------+\n",tbx,tby,tpin+1);
 								mchip.logic_grid[tbx][tby].pins[tpin]=TARGET;
-								route_path(&mchip, sbx, sby, spin, tbx, tby, tpin, switch_type, parallel);
+								route_path(&mchip, sbx, sby, spin, tbx, tby, tpin, parallel);
 								display_switch_config(mchip);
 								reset_router(&mchip);
 								setupStage=-1;

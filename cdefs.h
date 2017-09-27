@@ -35,6 +35,8 @@ struct sblock {
 
 /* To Store Routes once complete. */
 struct route {
+	struct lblock src;
+	struct lblock target;
 	struct sblock *switch_path;
 };
 
@@ -45,12 +47,26 @@ struct elist {
 	int * entered;
 };
 
+/* Wilton Switch */ 
+struct wilton_switch {
+	int * w_to_n;
+	int * n_to_w;
+	int * n_to_e;
+	int * e_to_n;
+	int * e_to_s;
+	int * s_to_e;
+	int * s_to_w;
+	int * w_to_s;
+};
+
 /* Entire Chip */
 struct chip {
 	int grid_size;
 	int width;
 	struct lblock **logic_grid;
 	struct sblock **switch_grid;
+	char switch_type;
+	struct wilton_switch switch_w;
 };
 
 struct hash_table {

@@ -20,7 +20,7 @@ static int PATH_FOUND=0;
 //pthread_mutex_t mutexsum = PTHREAD_MUTEX_INITIALIZER; 
 
 
-int route_path(struct chip *mchip_t, int src_x, int src_y, int src_pin, int targ_x, int targ_y, int targ_pin, char switch_type, char is_parallel);
+int route_path(struct chip *mchip_t, int src_x, int src_y, int src_pin, int targ_x, int targ_y, int targ_pin, char is_parallel);
 int reset_router(struct chip *mchip_t);
 
 #endif // ROUTER_H_
