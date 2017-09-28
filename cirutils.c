@@ -36,7 +36,6 @@ void display_switch_config(struct chip mchip) {
 
 void free_memory(struct chip mchip) {
 	int i,j,k,num_of_lblocks=mchip.grid_size, width=mchip.width;
-
 	free(mchip.logic_grid);
 	free(mchip.switch_grid);
 }
@@ -214,7 +213,12 @@ printf("[%d] [ %d ] [ %d ] -- [ %d ] [ %d ] -- [ %d ] [ %d ] -- [ %d ] [ %d ]\n"
 								tpin=atoi(token)-1;
 								printf("[TRG] L-Block[%2d][%2d] @ Pin[%2d]\n+--------------------------------------+\n",tbx,tby,tpin+1);
 								mchip.logic_grid[tbx][tby].pins[tpin]=TARGET;
-								route_path(&mchip, sbx, sby, spin, tbx, tby, tpin, parallel);
+								PATH_FOUND=route_path(&mchip, sbx, sby, spin, tbx, tby, tpin, parallel);
+								if(PATH_FOUND == 0) {
+									printf("-- No Path Found\n");
+									display_switch_config(mchip);
+									exit(0);
+								}
 								display_switch_config(mchip);
 								reset_router(&mchip);
 								setupStage=-1;
