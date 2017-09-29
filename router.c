@@ -49,22 +49,51 @@ void reset_reqs(struct chip *mchip_t) {
 	*mchip_t=mchip;
 }
 
-void trace_back(struct chip *mchip_t) {
+void trace_back(struct chip *mchip_t, int x, int y, int heading) {
+
+	int i, j, k;
+	int complete=0;
+	char head_back=0;
 	struct chip mchip;
 	mchip=*mchip_t;
 	PATH_FOUND=1;
 	printf("-- Trace Back Instantiated.\n");
-	printf("PATH_FOUND: %d\n",PATH_FOUND);
 
 	if(mchip.switch_type == 'f') {
 
 	} else {
+		for(i=0;i<4;++i) {
+			if(mchip.switch_grid[x][y].e_pins[i]== USED){
+				mchip.switch_grid[x][y].e_pins[i]=UNAVAIL;
+				if(y+1 <= mchip.grid_size)
+					mchip.switch_grid[x][y+1].w_pins[i]=UNAVAIL;
+				break;
+			} else if(mchip.switch_grid[x][y].w_pins[i] == USED) {
+				mchip.switch_grid[x][y].w_pins[i]=UNAVAIL;
+				if(y-1 >= 0)
+					mchip.switch_grid[x][y-1].e_pins[i]=UNAVAIL;
+				break;
+			} else if(mchip.switch_grid[x][y].n_pins[i] == USED) {
+				mchip.switch_grid[x][y].n_pins[i]=UNAVAIL;
+				if(x-1 >= 0)
+					mchip.switch_grid[x-1][y].s_pins[i]=UNAVAIL;
+				break;
+			} else if(mchip.switch_grid[x][y].s_pins[i] == USED) {
+				mchip.switch_grid[x][y].s_pins[i]=UNAVAIL;
+				if(x+1 <= mchip.grid_size)
+					mchip.switch_grid[x+1][y].n_pins[i]=UNAVAIL;
+				break;
+			}
+		}
+		// while(complete == 0) {
+		// 	//void *realloc(void *ptr, size_t size)
 
+		// }
 	}
 	*mchip_t=mchip;
 }
 
-int check_for_target(struct chip *mchip_t, int x, int y, int cameFrom) {
+int check_for_target(struct chip *mchip_t, int x, int y, int heading) {
 	int i, j, width, size;
 	struct chip mchip;
 	struct wilton_switch w_map;
@@ -162,7 +191,7 @@ int check_for_target(struct chip *mchip_t, int x, int y, int cameFrom) {
 	} else {
 		// for wilton
 		for(i=0; i< width; ++i) {
-			switch(cameFrom) {
+			switch(heading) {
 				case NORTH:
 
 					// check south 
@@ -326,7 +355,26 @@ int check_for_target(struct chip *mchip_t, int x, int y, int cameFrom) {
 					break;
 				case SOUTH:
 
-					//DO NOT FOrGET
+					//check north
+					if(mchip.switch_grid[x][y].n_pins[i] != UNAVAIL) {
+						if(y-1 >= 0 && x-1>=0) {
+							if(mchip.logic_grid[x-1][y-1].pins[EAST] == TARGET) {
+								printf("--FOUND @ sblock[%d][%d], s_pin[%d]\n",x,y,i);
+								mchip.switch_grid[x][y].n_pins[i]=USED;
+								*mchip_t=mchip;
+								return FOUND;
+							}
+						}
+						if(x-1>=0) {
+							if(mchip.logic_grid[x-1][y].pins[WEST] == TARGET) {
+								printf("--FOUND @ sblock[%d][%d], s_pin[%d]\n",x,y,i);
+								mchip.switch_grid[x][y].n_pins[i]=USED;
+								*mchip_t=mchip;
+								return FOUND;
+							}
+						}
+					}
+
 					// check west
 					if(mchip.switch_grid[x][y].w_pins[w_map.n_to_w[i]] != UNAVAIL) {
 						if(y-1 >=0 && x-1 >=0){
@@ -388,6 +436,27 @@ int check_for_target(struct chip *mchip_t, int x, int y, int cameFrom) {
 					break;
 				case WEST:
 									//DO NOT FOrGET
+
+					// check east 
+					if(mchip.switch_grid[x][y].e_pins[i] != UNAVAIL) {
+						if(x-1>=0) {
+							if(mchip.logic_grid[x-1][y].pins[SOUTH]==TARGET){
+								printf("--FOUND @ sblock[%d][%d], e_pin[%d]\n",x,y,w_map.n_to_e[i]);
+								mchip.switch_grid[x][y].e_pins[i]=USED;
+								*mchip_t=mchip;
+								return FOUND;
+							} 
+						}
+
+						if(x<size){
+							if(mchip.logic_grid[x][y].pins[NORTH]==TARGET) {
+								printf("--FOUND @ sblock[%d][%d], e_pin[%d]\n",x,y,w_map.n_to_e[i]);
+								mchip.switch_grid[x][y].e_pins[i]=USED;
+								*mchip_t=mchip;
+								return FOUND;
+							}
+						}						
+					}
 
 					// check north
 					if(mchip.switch_grid[x][y].n_pins[w_map.e_to_n[i]] != UNAVAIL) {
@@ -486,7 +555,7 @@ int add_to_queue(struct elist *elst_t, int x, int y, int src, int tail ) {
 
 void search_s(struct chip *mchip_t, int x1, int y1, int src1, int x2, int y2, int src2) {
 
-	int i, tail=0, curr=0, size, width, *costVec, x, y, cameFrom, whereTo;
+	int i, tail=0, curr=0, size, width, *costVec, x, y, heading, whereTo;
 	int goN=0, goE=0, goW=0, goS=0;			//for fully-connected switches.
 	int goN2=0, goE2=0, goW2=0, goS2=0;		
 	int flagN=0, flagS=0, flagE=0, flagW=0;	//for wilton switches.
@@ -527,15 +596,15 @@ void search_s(struct chip *mchip_t, int x1, int y1, int src1, int x2, int y2, in
 
 		x=elst.x[curr];
 		y=elst.y[curr];
-		cameFrom=elst.entered[curr];
+		heading=elst.entered[curr];
 
-		if(0==check_for_target(&mchip, x, y, cameFrom)){
+		if(0==check_for_target(&mchip, x, y, heading)){
 			printf("-- Found Path: Press Any Key to Traceback.\n\n");
-			trace_back(&mchip);
 			read(0,NULL,1);
+			trace_back(&mchip,x,y, heading);
 			break;
 		}
-		switch(cameFrom){
+		switch(heading){
 
 			case NORTH:
 				printf("Entering From: [NORTH] @ sblock[%d][%d]\n",x,y);
@@ -554,15 +623,12 @@ void search_s(struct chip *mchip_t, int x1, int y1, int src1, int x2, int y2, in
 				costVec=mchip.switch_grid[x][y].e_pins;
 				break;
 			default:
-				printf("[ERR] Exiting. Came from unknown direction[%d]\n",cameFrom);
+				printf("[ERR] Exiting. Came from unknown direction[%d]\n",heading);
 				exit(-1);
 				break;
 		}
 		for(i=0;i<width;++i){
 			printf("[%d]",costVec[i]);
-			if(costVec[i]== UNAVAIL) {
-				printf("[INFO] Found existing path @ sblock[%d][%d], heading [%d]\n",x, y, cameFrom);
-			}
 		}
 		printf("\n");
 
@@ -570,7 +636,7 @@ void search_s(struct chip *mchip_t, int x1, int y1, int src1, int x2, int y2, in
 			for(i=0;i<width;++i) {
 				// go east
 				if(y+1 <= size){
-					if(mchip.switch_grid[x][y+1].w_pins[i] != UNAVAIL && mchip.switch_grid[x][y].e_pins[i] != UNAVAIL && cameFrom != WEST) {
+					if(mchip.switch_grid[x][y+1].w_pins[i] != UNAVAIL && mchip.switch_grid[x][y].e_pins[i] != UNAVAIL && heading != WEST) {
 						if(mchip.switch_grid[x][y].e_pins[i]==INIT) {
 							goW=2;
 						}
@@ -582,7 +648,7 @@ void search_s(struct chip *mchip_t, int x1, int y1, int src1, int x2, int y2, in
 
 				//go west
 				if(y-1>=0) {
-					if(mchip.switch_grid[x][y-1].e_pins[i] != UNAVAIL && mchip.switch_grid[x][y].w_pins[i]!= UNAVAIL && cameFrom != EAST) {
+					if(mchip.switch_grid[x][y-1].e_pins[i] != UNAVAIL && mchip.switch_grid[x][y].w_pins[i]!= UNAVAIL && heading != EAST) {
 						if(mchip.switch_grid[x][y].w_pins[i]==INIT) {
 							goE=2;
 						}
@@ -594,7 +660,7 @@ void search_s(struct chip *mchip_t, int x1, int y1, int src1, int x2, int y2, in
 
 				//go south
 				if(x+1 <=size) {
-					if(mchip.switch_grid[x+1][y].n_pins[i]!= UNAVAIL && mchip.switch_grid[x][y].s_pins[i]!= UNAVAIL && cameFrom != SOUTH) {
+					if(mchip.switch_grid[x+1][y].n_pins[i]!= UNAVAIL && mchip.switch_grid[x][y].s_pins[i]!= UNAVAIL && heading != SOUTH) {
 						if(mchip.switch_grid[x][y].s_pins[i]==INIT) {
 							goS=2;
 						}
@@ -606,7 +672,7 @@ void search_s(struct chip *mchip_t, int x1, int y1, int src1, int x2, int y2, in
 
 				//go north
 				if(x-1>=0) {
-					if(mchip.switch_grid[x-1][y].s_pins[i] != UNAVAIL && mchip.switch_grid[x][y].n_pins[i]!= UNAVAIL && cameFrom != NORTH) {
+					if(mchip.switch_grid[x-1][y].s_pins[i] != UNAVAIL && mchip.switch_grid[x][y].n_pins[i]!= UNAVAIL && heading != NORTH) {
 						if(mchip.switch_grid[x][y].n_pins[i]==INIT) {
 							goN=2;
 						}
@@ -660,7 +726,7 @@ void search_s(struct chip *mchip_t, int x1, int y1, int src1, int x2, int y2, in
 			}
 		} else {
 			for(i=0; i<width ; ++i) {
-				switch(cameFrom){
+				switch(heading){
 					case SOUTH:
 						// head east 
 						if(mchip.switch_grid[x][y].n_pins[i] != UNAVAIL) {
@@ -803,7 +869,7 @@ void search_s(struct chip *mchip_t, int x1, int y1, int src1, int x2, int y2, in
 	*mchip_t=mchip;
 }
 
-void search(struct chip *mchip_t, int x, int y, int cameFrom) {
+void search(struct chip *mchip_t, int x, int y, int heading) {
 
 }
 

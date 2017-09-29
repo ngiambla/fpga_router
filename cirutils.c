@@ -219,7 +219,7 @@ printf("[%d] [ %d ] [ %d ] -- [ %d ] [ %d ] -- [ %d ] [ %d ] -- [ %d ] [ %d ]\n"
 									display_switch_config(mchip);
 									exit(0);
 								}
-								display_switch_config(mchip);
+								//display_switch_config(mchip);
 								reset_router(&mchip);
 								setupStage=-1;
 								break;
