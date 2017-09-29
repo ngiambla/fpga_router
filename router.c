@@ -164,6 +164,26 @@ int check_for_target(struct chip *mchip_t, int x, int y, int cameFrom) {
 		for(i=0; i< width; ++i) {
 			switch(cameFrom) {
 				case NORTH:
+
+					// check south 
+					if(mchip.switch_grid[x][y].s_pins[i] != UNAVAIL) {
+						if(y-1 >= 0 && x < size) {
+							if(mchip.logic_grid[x][y-1].pins[EAST] == TARGET) {
+								printf("--FOUND @ sblock[%d][%d], s_pin[%d]\n",x,y,w_map.w_to_s[i]);
+								mchip.switch_grid[x][y].s_pins[i]=USED;
+								*mchip_t=mchip;
+								return FOUND;
+							}
+						}
+						if(x < size) {
+							if(mchip.logic_grid[x][y].pins[WEST] == TARGET) {
+								printf("--FOUND @ sblock[%d][%d], s_pin[%d]\n",x,y,w_map.w_to_s[i]);
+								mchip.switch_grid[x][y].s_pins[i]=USED;
+								*mchip_t=mchip;
+								return FOUND;
+							}
+						}
+					}
 					// check east
 					if(mchip.switch_grid[x][y].e_pins[w_map.s_to_e[i]] != UNAVAIL) {
 						if(x-1 >= 0) {
@@ -225,6 +245,27 @@ int check_for_target(struct chip *mchip_t, int x, int y, int cameFrom) {
 
 					break;
 				case EAST:
+
+					// check west
+					if(mchip.switch_grid[x][y].w_pins[i] != UNAVAIL) {
+						if(y-1 >=0 && x-1 >=0){
+							if(mchip.logic_grid[x-1][y-1].pins[SOUTH]==TARGET) {
+								printf("--FOUND @ sblock[%d][%d], w_pin[%d]\n",x,y,w_map.s_to_w[i]);
+								mchip.switch_grid[x][y].w_pins[i]=USED;
+								*mchip_t=mchip;
+								return FOUND;
+							} 
+						}
+						if(y-1>=0 && x<size){
+							if(mchip.logic_grid[x][y-1].pins[NORTH]==TARGET) {
+								printf("--FOUND @ sblock[%d][%d], w_pin[%d]\n",x,y,w_map.s_to_w[i]);
+								mchip.switch_grid[x][y].w_pins[i]=USED;
+								*mchip_t=mchip;
+								return FOUND;
+							}
+						}						
+					}
+
 					// check south
 					if(mchip.switch_grid[x][y].s_pins[w_map.w_to_s[i]] != UNAVAIL) {
 						if(y-1 >= 0 && x < size) {
@@ -284,6 +325,8 @@ int check_for_target(struct chip *mchip_t, int x, int y, int cameFrom) {
 					}
 					break;
 				case SOUTH:
+
+					//DO NOT FOrGET
 					// check west
 					if(mchip.switch_grid[x][y].w_pins[w_map.n_to_w[i]] != UNAVAIL) {
 						if(y-1 >=0 && x-1 >=0){
@@ -344,6 +387,8 @@ int check_for_target(struct chip *mchip_t, int x, int y, int cameFrom) {
 					}
 					break;
 				case WEST:
+									//DO NOT FOrGET
+
 					// check north
 					if(mchip.switch_grid[x][y].n_pins[w_map.e_to_n[i]] != UNAVAIL) {
 						if(x-1>=0 && y-1>=0){
