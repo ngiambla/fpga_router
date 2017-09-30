@@ -3,6 +3,11 @@
 //#include <signal.h>
 #include "router.h"
 
+/********************
+GLOBAL VARS
+********************/
+int verbose; 			// flag for debugging
+
 /* function reset_connections()
  * -- resets all unused connections
  */
@@ -49,46 +54,114 @@ void reset_reqs(struct chip *mchip_t) {
 	*mchip_t=mchip;
 }
 
-void trace_back(struct chip *mchip_t, int x, int y, int heading) {
+int select_lowest_cost_idx(int * cost, int size) {
+	int i=0;
+	int min=cost[0];
+	int idx=0;
+	for(i=0; i<size; i++) {
+		if(cost[i]<=min) {
+			idx=i;
+		}
+	}
+	return idx;
+}
+
+int get_backwards_path(int pin1, int pin2, int pin3, int dir1, int dir2, int dir3) {
+	int dirs[3], cost[3], idx;
+	dirs[0]=dir1;
+	dirs[1]=dir2;
+	dirs[2]=dir3;
+
+	cost[0]=pin1;
+	cost[1]=pin2;
+	cost[2]=pin3;
+
+	idx=select_lowest_cost_idx(cost,3);
+
+	return dirs[idx];
+}
+
+void traceback(struct chip *mchip_t, int x, int y, int heading) {
+	printf("--Heading [%d]\n",heading);
+				// switch(nextBlck){
+				// 	case NORTH:
+				// 		//traceback(&mchip, x-1, y, nextBlck)
+				// 		break;
+				// 	case SOUTH:
+				// 		//traceback(&mchip, x+1, y, nextBlck)
+				// 		break;
+				// 	case WEST:
+				// 		//traceback(&mchip, x-1, y, nextBlck)
+				// 		break;
+				// }
+}
+
+void init_traceback(struct chip *mchip_t, int x, int y, int heading) {
 
 	int i, j, k;
-	int complete=0;
+	int complete=0, cost=0, c1, c2, c3, nextBlck;
 	char head_back=0;
 	struct chip mchip;
+	struct wilton_switch w_map;
+
 	mchip=*mchip_t;
+	w_map=mchip.switch_w;
+
 	PATH_FOUND=1;
+
 	printf("-- Trace Back Instantiated.\n");
+
 
 	if(mchip.switch_type == 'f') {
 
 	} else {
-		for(i=0;i<4;++i) {
+		for(i=0;i<mchip.width;++i) {
 			if(mchip.switch_grid[x][y].e_pins[i]== USED){
 				mchip.switch_grid[x][y].e_pins[i]=UNAVAIL;
 				if(y+1 <= mchip.grid_size)
 					mchip.switch_grid[x][y+1].w_pins[i]=UNAVAIL;
+				c1=mchip.switch_grid[x][y].s_pins[w_map.e_to_s[i]];
+				c2=mchip.switch_grid[x][y].n_pins[w_map.e_to_n[i]];
+				c3=mchip.switch_grid[x][y].w_pins[i];
+				nextBlck=get_backwards_path(c1,c2,c3,SOUTH, NORTH, WEST);
+				traceback(&mchip, x, y, nextBlck);
 				break;
+
 			} else if(mchip.switch_grid[x][y].w_pins[i] == USED) {
 				mchip.switch_grid[x][y].w_pins[i]=UNAVAIL;
 				if(y-1 >= 0)
 					mchip.switch_grid[x][y-1].e_pins[i]=UNAVAIL;
+				c1=mchip.switch_grid[x][y].s_pins[w_map.w_to_s[i]];
+				c2=mchip.switch_grid[x][y].n_pins[w_map.w_to_n[i]];
+				c3=mchip.switch_grid[x][y].e_pins[i];
+				nextBlck=get_backwards_path(c1,c2,c3,SOUTH, NORTH, EAST);
+				traceback(&mchip, x, y, nextBlck);
 				break;
+
 			} else if(mchip.switch_grid[x][y].n_pins[i] == USED) {
 				mchip.switch_grid[x][y].n_pins[i]=UNAVAIL;
 				if(x-1 >= 0)
 					mchip.switch_grid[x-1][y].s_pins[i]=UNAVAIL;
+				c1=mchip.switch_grid[x][y].s_pins[i];
+				c2=mchip.switch_grid[x][y].e_pins[w_map.n_to_e[i]];
+				c3=mchip.switch_grid[x][y].w_pins[w_map.n_to_w[i]];
+				nextBlck=get_backwards_path(c1,c2,c3,SOUTH, EAST, WEST);
+				traceback(&mchip, x, y, nextBlck);
 				break;
+
 			} else if(mchip.switch_grid[x][y].s_pins[i] == USED) {
 				mchip.switch_grid[x][y].s_pins[i]=UNAVAIL;
 				if(x+1 <= mchip.grid_size)
 					mchip.switch_grid[x+1][y].n_pins[i]=UNAVAIL;
+				c1=mchip.switch_grid[x][y].n_pins[i];
+				c2=mchip.switch_grid[x][y].e_pins[w_map.s_to_e[i]];
+				c3=mchip.switch_grid[x][y].w_pins[w_map.s_to_w[i]];
+				nextBlck=get_backwards_path(c1,c2,c3,NORTH, EAST, WEST);
+				traceback(&mchip, x, y, nextBlck);
+
 				break;
 			}
 		}
-		// while(complete == 0) {
-		// 	//void *realloc(void *ptr, size_t size)
-
-		// }
 	}
 	*mchip_t=mchip;
 }
@@ -557,7 +630,8 @@ void search_s(struct chip *mchip_t, int x1, int y1, int src1, int x2, int y2, in
 
 	int i, tail=0, curr=0, size, width, *costVec, x, y, heading, whereTo;
 	int goN=0, goE=0, goW=0, goS=0;			//for fully-connected switches.
-	int goN2=0, goE2=0, goW2=0, goS2=0;		
+	int goN2=0, goE2=0, goW2=0, goS2=0;
+
 	int flagN=0, flagS=0, flagE=0, flagW=0;	//for wilton switches.
 
 	struct chip mchip;
@@ -567,7 +641,7 @@ void search_s(struct chip *mchip_t, int x1, int y1, int src1, int x2, int y2, in
 	mchip=*mchip_t;
 	size=mchip.grid_size;
 	width=mchip.width;
-	w_map=mchip.switch_w;	//
+	w_map=mchip.switch_w;	// for wilton mapping; fully connected allows any pin to go to any pin (as long as it's avail);
 
 	//init the elist;
 	elst=init_elst(size);
@@ -600,8 +674,7 @@ void search_s(struct chip *mchip_t, int x1, int y1, int src1, int x2, int y2, in
 
 		if(0==check_for_target(&mchip, x, y, heading)){
 			printf("-- Found Path: Press Any Key to Traceback.\n\n");
-			read(0,NULL,1);
-			trace_back(&mchip,x,y, heading);
+			init_traceback(&mchip,x,y, heading);
 			break;
 		}
 		switch(heading){
