@@ -39,9 +39,13 @@ void drawscreen (void) {
    setlinewidth (1);
    setcolor (BLACK);
 
-   drawtext (110.,55.,"colors",150.);
    setcolor (LIGHTGREY);
-   fillrect (150.,30.,200.,80.);
+   fillrect (150.,150.,150.,150.);
+
+   setcolor (GREY);
+   fillrect (30., 30., 30., 30.,);
+
+
    setcolor (DARKGREY);
    fillrect (200.,30.,250.,80.);
    setcolor (WHITE);
