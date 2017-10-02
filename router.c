@@ -56,17 +56,17 @@ void reset_reqs(struct chip *mchip_t) {
 
 int select_lowest_cost_idx(int * cost, int size) {
 	int i=0;
-	int min=cost[0];
+	int min=100000;
 	int idx=0;
 	for(i=0; i<size; i++) {
-		if(cost[i]<=min) {
+		if(cost[i]<=min && cost[i] != INIT && cost[i] != UNAVAIL) {
 			idx=i;
 		}
 	}
 	return idx;
 }
 
-int get_backwards_path(int pin1, int pin2, int pin3, int dir1, int dir2, int dir3) {
+void get_backwards_path(int pin1, int pin2, int pin3, int dir1, int dir2, int dir3, int * nextBlck) {
 	int dirs[3], cost[3], idx;
 	dirs[0]=dir1;
 	dirs[1]=dir2;
@@ -75,31 +75,43 @@ int get_backwards_path(int pin1, int pin2, int pin3, int dir1, int dir2, int dir
 	cost[0]=pin1;
 	cost[1]=pin2;
 	cost[2]=pin3;
-
+	printf("COST: [%d][%d][%d]\n DIR: [%d][%d][%d]\n",pin1,pin2,pin3,dir1,dir2,dir3);
 	idx=select_lowest_cost_idx(cost,3);
 
-	return dirs[idx];
+	nextBlck[0]=dirs[idx];
+	nextBlck[1]=cost[idx];
 }
 
-void traceback(struct chip *mchip_t, int x, int y, int heading) {
+void traceback(struct chip *mchip_t, int x, int y, int * nextBlck) {
+	int heading = nextBlck[0];
+	int cost = nextBlck[1];
+
 	printf("--Heading [%d]\n",heading);
-				// switch(nextBlck){
-				// 	case NORTH:
-				// 		//traceback(&mchip, x-1, y, nextBlck)
-				// 		break;
-				// 	case SOUTH:
-				// 		//traceback(&mchip, x+1, y, nextBlck)
-				// 		break;
-				// 	case WEST:
-				// 		//traceback(&mchip, x-1, y, nextBlck)
-				// 		break;
-				// }
+	printf("Current cost: [%d]\n",cost);
+				switch(heading){
+					case NORTH:
+						x=x-1;
+
+						break;
+					case SOUTH:
+						x=x+1;
+
+						break;
+					case WEST:
+						y=y-1;
+
+						break;
+					case EAST:
+						y=y+1;
+						
+						break;
+				}
 }
 
 void init_traceback(struct chip *mchip_t, int x, int y, int heading) {
 
 	int i, j, k;
-	int complete=0, cost=0, c1, c2, c3, nextBlck;
+	int complete=0, cost=0, c1, c2, c3, nextBlck[2];
 	char head_back=0;
 	struct chip mchip;
 	struct wilton_switch w_map;
@@ -113,7 +125,52 @@ void init_traceback(struct chip *mchip_t, int x, int y, int heading) {
 
 
 	if(mchip.switch_type == 'f') {
+		for(i=0;i<mchip.width; ++i) {
+			if(mchip.switch_grid[x][y].e_pins[i]== USED){
+				mchip.switch_grid[x][y].e_pins[i]=UNAVAIL;
+				if(y+1 <= mchip.grid_size)
+					mchip.switch_grid[x][y+1].w_pins[i]=UNAVAIL;
+				c1=mchip.switch_grid[x][y].s_pins[i];
+				c2=mchip.switch_grid[x][y].n_pins[i];
+				c3=mchip.switch_grid[x][y].w_pins[i];
+				get_backwards_path(c1,c2,c3,SOUTH, NORTH, WEST, nextBlck);
+				traceback(&mchip, x, y, nextBlck);
+				break;
 
+			} else if(mchip.switch_grid[x][y].w_pins[i] == USED) {
+				mchip.switch_grid[x][y].w_pins[i]=UNAVAIL;
+				if(y-1 >= 0)
+					mchip.switch_grid[x][y-1].e_pins[i]=UNAVAIL;
+				c1=mchip.switch_grid[x][y].s_pins[i];
+				c2=mchip.switch_grid[x][y].n_pins[i];
+				c3=mchip.switch_grid[x][y].e_pins[i];
+				get_backwards_path(c1,c2,c3,SOUTH, NORTH, EAST, nextBlck);
+				traceback(&mchip, x, y, nextBlck);
+				break;
+
+			} else if(mchip.switch_grid[x][y].n_pins[i] == USED) {
+				mchip.switch_grid[x][y].n_pins[i]=UNAVAIL;
+				if(x-1 >= 0)
+					mchip.switch_grid[x-1][y].s_pins[i]=UNAVAIL;
+				c1=mchip.switch_grid[x][y].s_pins[i];
+				c2=mchip.switch_grid[x][y].e_pins[i];
+				c3=mchip.switch_grid[x][y].w_pins[i];
+				get_backwards_path(c1,c2,c3,SOUTH, EAST, WEST,nextBlck);
+				traceback(&mchip, x, y, nextBlck);
+				break;
+
+			} else if(mchip.switch_grid[x][y].s_pins[i] == USED) {
+				mchip.switch_grid[x][y].s_pins[i]=UNAVAIL;
+				if(x+1 <= mchip.grid_size)
+					mchip.switch_grid[x+1][y].n_pins[i]=UNAVAIL;
+				c1=mchip.switch_grid[x][y].n_pins[i];
+				c2=mchip.switch_grid[x][y].e_pins[i];
+				c3=mchip.switch_grid[x][y].w_pins[i];
+				get_backwards_path(c1,c2,c3,NORTH, EAST, WEST,nextBlck);
+				traceback(&mchip, x, y, nextBlck);
+				break;
+			}
+		}
 	} else {
 		for(i=0;i<mchip.width;++i) {
 			if(mchip.switch_grid[x][y].e_pins[i]== USED){
@@ -123,7 +180,7 @@ void init_traceback(struct chip *mchip_t, int x, int y, int heading) {
 				c1=mchip.switch_grid[x][y].s_pins[w_map.e_to_s[i]];
 				c2=mchip.switch_grid[x][y].n_pins[w_map.e_to_n[i]];
 				c3=mchip.switch_grid[x][y].w_pins[i];
-				nextBlck=get_backwards_path(c1,c2,c3,SOUTH, NORTH, WEST);
+				get_backwards_path(c1,c2,c3,SOUTH, NORTH, WEST,nextBlck);
 				traceback(&mchip, x, y, nextBlck);
 				break;
 
@@ -134,7 +191,7 @@ void init_traceback(struct chip *mchip_t, int x, int y, int heading) {
 				c1=mchip.switch_grid[x][y].s_pins[w_map.w_to_s[i]];
 				c2=mchip.switch_grid[x][y].n_pins[w_map.w_to_n[i]];
 				c3=mchip.switch_grid[x][y].e_pins[i];
-				nextBlck=get_backwards_path(c1,c2,c3,SOUTH, NORTH, EAST);
+				get_backwards_path(c1,c2,c3,SOUTH, NORTH, EAST,nextBlck);
 				traceback(&mchip, x, y, nextBlck);
 				break;
 
@@ -145,7 +202,7 @@ void init_traceback(struct chip *mchip_t, int x, int y, int heading) {
 				c1=mchip.switch_grid[x][y].s_pins[i];
 				c2=mchip.switch_grid[x][y].e_pins[w_map.n_to_e[i]];
 				c3=mchip.switch_grid[x][y].w_pins[w_map.n_to_w[i]];
-				nextBlck=get_backwards_path(c1,c2,c3,SOUTH, EAST, WEST);
+				get_backwards_path(c1,c2,c3,SOUTH, EAST, WEST,nextBlck);
 				traceback(&mchip, x, y, nextBlck);
 				break;
 
@@ -156,9 +213,8 @@ void init_traceback(struct chip *mchip_t, int x, int y, int heading) {
 				c1=mchip.switch_grid[x][y].n_pins[i];
 				c2=mchip.switch_grid[x][y].e_pins[w_map.s_to_e[i]];
 				c3=mchip.switch_grid[x][y].w_pins[w_map.s_to_w[i]];
-				nextBlck=get_backwards_path(c1,c2,c3,NORTH, EAST, WEST);
+				get_backwards_path(c1,c2,c3,NORTH, EAST, WEST,nextBlck);
 				traceback(&mchip, x, y, nextBlck);
-
 				break;
 			}
 		}
