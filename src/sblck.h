@@ -43,7 +43,7 @@ class Sblck {
 		void set_pin(int side, int pin, int weight);
 		int is_side_avail(int side);
 		int get_pin(int side, int pin);
-		int set_switch(int dest, int src);
+		int set_switch(int dest, int src, int pin);
 		void reset();
 
 };

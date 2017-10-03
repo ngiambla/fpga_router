@@ -115,32 +115,18 @@ vector<int>* Sblck::get_side(int dir){
 }
 
 
-int Sblck::set_switch(int dest, int src) {
-	int i;
+int Sblck::set_switch(int dest, int src, int pin) {
 	vector<int> * src_v, * dest_v;
 	if(sw_type == 'f') {
 		if(is_side_avail(dest) == 1) {
 			src_v=get_side(src);
 			dest_v=get_side(dest);
-			for(i=0;i<w_per_pin;++i) {
-				if((*src_v)[i] >= 0 && (*dest_v)[i] == AVAIL) {
-					(*dest_v)[i]=(*src_v)[i]+1;
-				}
+			if((*src_v)[pin] >= 0 && (*dest_v)[pin] == AVAIL) {
+					(*dest_v)[pin]=(*src_v)[pin]+1;
 			}
-
 		}
 	} else {
-		// if()
-		// switch(src){
-		// 	case NORTH:
-		// 		break;
-		// 	case EAST:
-		// 		break;
-		// 	case SOUTH:
-		// 		break;
-		// 	case WEST:
-		// 		break;
-		// }
+
 	}
 	
 }

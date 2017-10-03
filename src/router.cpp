@@ -49,14 +49,11 @@ void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, in
 	going.push_back(heading2);
 
 
-	for(int i : sblcks_x) {
+	while(HEAD < sblcks_x.size()) {
 		cur_x=sblcks_x[HEAD];
 		cur_y=sblcks_y[HEAD];
 		cur_heading=going[HEAD];
 		printf("[router] -- inspecting [%d][%d], heading [%d]\n", cur_x, cur_y, cur_heading);
-		printf("[router] --\n");
-		c.get_switch(cur_x,cur_y).display_block();
-		printf("\n");
 		if(check_for_target(c, cur_x, cur_y) == 1) {
 			printf("[SEARCH] --Target Acquired.\n");
 			begin_traceback(c, cur_x, cur_y, cur_heading);
@@ -69,15 +66,15 @@ void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, in
 				case NORTH:
 					if(s_t.get_pin(SOUTH, i) != UNAVAIL) {
 						if(s_t.is_side_avail(NORTH)==1) {
-							s_t.set_switch(NORTH, SOUTH);
+							s_t.set_switch(NORTH, SOUTH, i);
 							nflag=1;
 						}
 						if(s_t.is_side_avail(EAST)==1) {
-							s_t.set_switch(EAST, SOUTH);
+							s_t.set_switch(EAST, SOUTH, i);
 							eflag=1;
 						}
 						if(s_t.is_side_avail(WEST)==1) {
-							s_t.set_switch(WEST, SOUTH);
+							s_t.set_switch(WEST, SOUTH, i);
 							wflag=1;
 						}
 					}
@@ -85,15 +82,15 @@ void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, in
 				case EAST:
 					if(s_t.get_pin(WEST, i) != UNAVAIL) {
 						if(s_t.is_side_avail(NORTH)==1) {
-							s_t.set_switch(NORTH, WEST);
+							s_t.set_switch(NORTH, WEST, i);
 							nflag=1;
 						}
 						if(s_t.is_side_avail(EAST)==1) {
-							s_t.set_switch(EAST, WEST);
+							s_t.set_switch(EAST, WEST, i);
 							eflag=1;
 						}
 						if(s_t.is_side_avail(SOUTH)==1) {
-							s_t.set_switch(SOUTH, WEST);
+							s_t.set_switch(SOUTH, WEST, i);
 							sflag=1;						
 						}
 					}
@@ -101,15 +98,15 @@ void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, in
 				case SOUTH:
 					if(s_t.get_pin(NORTH, i) != UNAVAIL) {
 						if(s_t.is_side_avail(SOUTH)==1) {
-							s_t.set_switch(SOUTH, NORTH);
+							s_t.set_switch(SOUTH, NORTH, i);
 							sflag=1;
 						}
 						if(s_t.is_side_avail(EAST)==1) {
-							s_t.set_switch(EAST, NORTH);
+							s_t.set_switch(EAST, NORTH, i);
 							eflag=1;						
 						}
 						if(s_t.is_side_avail(WEST)==1) {
-							s_t.set_switch(WEST, NORTH);
+							s_t.set_switch(WEST, NORTH, i);
 							wflag=1;						
 						}
 					}
@@ -117,15 +114,15 @@ void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, in
 				case WEST:
 					if(s_t.get_pin(EAST, i) != UNAVAIL) {
 						if(s_t.is_side_avail(NORTH)==1) {
-							s_t.set_switch(NORTH, EAST);
+							s_t.set_switch(NORTH, EAST, i);
 							nflag=1;						
 						}
 						if(s_t.is_side_avail(SOUTH)==1) {
-							s_t.set_switch(SOUTH, EAST);
+							s_t.set_switch(SOUTH, EAST, i);
 							sflag=1;												
 						}
 						if(s_t.is_side_avail(WEST)==1) {
-							s_t.set_switch(WEST, EAST);
+							s_t.set_switch(WEST, EAST, i);
 							wflag=1;						
 						}
 					}
@@ -147,7 +144,7 @@ void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, in
 		if(eflag==1) {
 			sblcks_x.push_back(cur_x);
 			sblcks_y.push_back(cur_y+1);
-			going.push_back(EAST);		
+			going.push_back(EAST);	
 			eflag=0;	
 		}
 		if(wflag==1) {
