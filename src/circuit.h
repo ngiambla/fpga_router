@@ -96,6 +96,7 @@ class Circuit {
 		Sblck& get_switch(int x, int y);
 		Lblck& get_lblck(int x, int y);
 		int get_width();
+		int get_size();
 		void reset();
 
 };

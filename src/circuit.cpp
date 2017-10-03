@@ -16,8 +16,12 @@ Lblck& Circuit::get_lblck(int x, int y) {
 	}
 }
 
-int Circuit::get_width(){
+int Circuit::get_width() {
 	return width;
+}
+
+int Circuit::get_size() {
+	return size;
 }
 
 void Circuit::reset() {

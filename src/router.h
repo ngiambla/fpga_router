@@ -9,6 +9,7 @@ class Router {
 	private:
 
 		vector< vector<int> > netlist;
+		vector<Sblck> path;
 		int target_hit;
 
 	public:

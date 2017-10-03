@@ -1,5 +1,6 @@
 
 #include "router.h"
+#include <algorithm>
 
 void Router::begin_traceback(Circuit &c, int x, int y, int came_from) {
 
@@ -35,6 +36,7 @@ int Router::check_for_target(Circuit &c, int x, int y) {
 
 void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, int heading2) {
 	int HEAD=0, i=0, cur_x, cur_y, cur_heading;
+	char placeholder;
 	int eflag=0, nflag=0, sflag=0, wflag=0;
 	vector<int> sblcks_x;
 	vector<int> sblcks_y;
@@ -49,15 +51,23 @@ void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, in
 	going.push_back(heading2);
 
 
-	while(HEAD < sblcks_x.size()) {
+	while(HEAD < sblcks_x.size() && HEAD <c.get_size()*c.get_size()) {
 		cur_x=sblcks_x[HEAD];
 		cur_y=sblcks_y[HEAD];
 		cur_heading=going[HEAD];
 		printf("[router] -- inspecting [%d][%d], heading [%d]\n", cur_x, cur_y, cur_heading);
+		cin.ignore();
+
+		if(cur_x==17 && cur_y==9) {
+			cout >> placeholder;
+		}
 		if(check_for_target(c, cur_x, cur_y) == 1) {
 			printf("[SEARCH] --Target Acquired.\n");
 			begin_traceback(c, cur_x, cur_y, cur_heading);
 			break;
+		}
+		if(cur_x==17 && cur_y==9) {
+			cout >> placeholder;
 		}
 		Sblck s_t = c.get_switch(cur_x, cur_y);
 
@@ -130,6 +140,7 @@ void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, in
 			}
 		}
 		if(nflag==1) {
+
 			sblcks_x.push_back(cur_x-1);
 			sblcks_y.push_back(cur_y);
 			going.push_back(NORTH);
@@ -190,6 +201,7 @@ int Router::begin_routing(Circuit &c) {
 		Lblck ltrg = c.get_lblck(net[3], net[4]);
 		ltrg.set_as_target(net[5]-1);
 
+		printf("[router] Routing lblck[%d][%d]@[%d] --> lblck[%d][%d]@[%d]\n", net[0],net[1],net[2],net[3],net[4],net[5]);
 		begin_search(c, net[0], net[1], net[2]-1);
 
 		c.reset();
