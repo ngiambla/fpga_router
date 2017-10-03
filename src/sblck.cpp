@@ -26,6 +26,19 @@ void Sblck::connect_track(Track &trck, int side) {
 	}
 }
 
+int Sblck::is_side_avail(int side) {
+	switch(side) {
+		case NORTH:
+			return n_conn;
+		case EAST:
+			return e_conn;
+		case SOUTH:
+			return s_conn;
+		case WEST:
+			return w_conn;
+	}
+}
+
 void Sblck::set_pin(int side, int pin, int weight) {
 	switch(side) {
 		case NORTH:
@@ -84,4 +97,50 @@ void Sblck::display_block() {
 		}
 		printf("\n");
 	}
+}
+
+vector<int>* Sblck::get_side(int dir){
+	switch(dir) {
+		case NORTH:
+			return n_pins;
+		case EAST:
+			return e_pins;
+		case SOUTH:
+			return s_pins;
+		case WEST:
+			return w_pins;
+		default:
+			throw "Invalid Side";
+	}
+}
+
+
+int Sblck::set_switch(int dest, int src) {
+	int i;
+	vector<int> * src_v, * dest_v;
+	if(sw_type == 'f') {
+		if(is_side_avail(dest) == 1) {
+			src_v=get_side(src);
+			dest_v=get_side(dest);
+			for(i=0;i<w_per_pin;++i) {
+				if((*src_v)[i] >= 0 && (*dest_v)[i] == AVAIL) {
+					(*dest_v)[i]=(*src_v)[i]+1;
+				}
+			}
+
+		}
+	} else {
+		// if()
+		// switch(src){
+		// 	case NORTH:
+		// 		break;
+		// 	case EAST:
+		// 		break;
+		// 	case SOUTH:
+		// 		break;
+		// 	case WEST:
+		// 		break;
+		// }
+	}
+	
 }

@@ -19,6 +19,8 @@ class Sblck {
 		int w_per_pin;
 		char sw_type;
 
+		vector<int>* get_side(int dir);
+
 	public:
 		Sblck(int width, char type) {
 			int i=0;
@@ -32,13 +34,16 @@ class Sblck {
 			e_conn=0;
 			s_conn=0;
 			w_conn=0;
+
 			sw_type=type;
 		}
 
 		void display_block();
 		void connect_track(Track &trck, int side);
 		void set_pin(int side, int pin, int weight);
+		int is_side_avail(int side);
 		int get_pin(int side, int pin);
+		int set_switch(int dest, int src);
 		void reset();
 
 };

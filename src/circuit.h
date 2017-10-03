@@ -67,7 +67,6 @@ class Circuit {
 				}
 				sgrid.push_back(srow);
 			}
-
 			/* Connect Tracks to Switches */
 			for(i=0; i<size+1; ++i) {
 				for(j=0; j<size; ++j) {
@@ -77,8 +76,8 @@ class Circuit {
 			}
 			for(j=0;j<size+1;++j) {
 				for(i=0;i<size;++i) {
-					sgrid[i][j].connect_track(v_tracks[j][i], SOUTH);
-					sgrid[i+1][j].connect_track(v_tracks[j][i], NORTH);
+					sgrid[i][j].connect_track(v_tracks[i][j], SOUTH);
+					sgrid[i+1][j].connect_track(v_tracks[i][j], NORTH);
 				}
 			}
 
@@ -97,6 +96,7 @@ class Circuit {
 		Sblck& get_switch(int x, int y);
 		Lblck& get_lblck(int x, int y);
 		int get_width();
+		void reset();
 
 };
 
