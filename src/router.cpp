@@ -30,8 +30,8 @@ int Router::check_for_target(Circuit c, int x, int y) {
 }
 
 void Router::search(Circuit c, int x1, int y1, int heading1, int x2, int y2, int heading2) {
-	int HEAD=0, cur_x, cur_y, cur_heading;
-
+	int HEAD=0, i=0, cur_x, cur_y, cur_heading;
+	int eflag=0, nflag=0, sflag=0, wflag=0;
 	vector<int> sblcks_x;
 	vector<int> sblcks_y;
 	vector<int> going;
@@ -54,6 +54,36 @@ void Router::search(Circuit c, int x1, int y1, int heading1, int x2, int y2, int
 			begin_traceback(c, cur_x, cur_y, cur_heading);
 			break;
 		}
+		Sblck s_t = c.get_switch(cur_x, cur_y);
+
+		for(i=0; i< c.get_width(); ++i){
+			switch(cur_heading){
+				case NORTH:
+					if(s_t.get_pins(SOUTH, i) != UNAVAIL) {
+						if(cur_y-1 >= 0)
+							Sblck s_east=c.get_switch(cur_x,cur_y-1);
+
+						if(cur_x-1 >=0)
+							Sblck s_north=c.get_switch(cur_x-1,cur_y);
+						if()
+							Sblck w_north
+					}
+					break;
+				case EAST:
+					break;
+				case SOUTH:
+					break;
+				case WEST:
+					break;
+			}
+		}
+		if(nflag==1) {
+			sblcks_x.push_back(cur_x-1);
+			sblcks_y.push_back(cur_y);
+			going.push_back(NORTH);
+			nflag=0;
+		}
+		++HEAD;
 	}
 }
 
