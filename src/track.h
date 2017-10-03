@@ -2,14 +2,11 @@
 #define __TRACK_H_INCLUDED__
 
 #include "cirdefs.h"
-#include "sblck.h"
-#include "lblck.h"
 
 class Track {
 	private:
-		vector<sblck> sblcks;
-		vector<lblck> lblcks;
 		vector<int> lines;
+
 	public:
 		Track(int width) {
 			int i=0;
@@ -18,8 +15,10 @@ class Track {
 			}
 		}
 
-		void connect_switches(Sblck ls, Sblck rs, int dir);
-		void connect_lblck(Lblck lblck, int dir);
+		vector<int>& get_track() {
+			return lines;
+		}
+
 
 };
 

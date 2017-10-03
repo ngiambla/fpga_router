@@ -2,13 +2,20 @@
 #define __SBLCK_H_INCLUDED__ 
 
 #include "cirdefs.h"
+#include "track.h"
 
 class Sblck {
 	private:
-		vector<int> n_pins;		//define pins for logic block
-		vector<int> e_pins;
-		vector<int> s_pins;
-		vector<int> w_pins;
+		vector<int> * n_pins;		//define pins for logic block
+		vector<int> * e_pins;
+		vector<int> * s_pins;
+		vector<int> * w_pins;
+
+		int n_conn;
+		int e_conn;
+		int s_conn;
+		int w_conn;
+
 		int w_per_pin;
 		char sw_type;
 
@@ -16,53 +23,24 @@ class Sblck {
 		Sblck(int width, char type) {
 			int i=0;
 			w_per_pin=width;
+			n_pins = new vector<int>();
+			e_pins = new vector<int>();
+			s_pins = new vector<int>();
+			w_pins = new vector<int>();
+
+			n_conn=0;
+			e_conn=0;
+			s_conn=0;
+			w_conn=0;
 			sw_type=type;
-	 		for(i=0; i<width; ++i) {
-	 			n_pins.push_back(AVAIL);
-	 			e_pins.push_back(AVAIL);
-	 			s_pins.push_back(AVAIL);
-	 			w_pins.push_back(AVAIL);
-	 		}
 		}
-	vector<int> get_side(int side) {
-		switch(side) {
-			case NORTH:
-				return n_pins;
-			case EAST:
-				return e_pins;
-			case SOUTH:
-				return s_pins;
-			case WEST:
-				return w_pins;
-			default:
-				throw "Invalid Side";
-		}
-	}
 
-	void set_side(int side, vector<int> vec) {
-		switch(side) {
-			case NORTH:
-				n_pins = vec;
-				break;
-			case EAST:
-				e_pins = vec;
-				break;
-			case SOUTH:
-				s_pins = vec;
-				break;
-			case WEST:
-				w_pins = vec;
-				break;
-			default:
-				throw "Invalid Side";
-		}
-	}
+		void display_block();
+		void connect_track(Track &trck, int side);
+		void set_pin(int side, int pin, int weight);
+		int get_pin(int side, int pin);
+		void reset();
 
-	void display_block();
-	void disconnect_pin(int side, int pin);
-	void connect_pin(int side, int pin);
-	void get_next();
-	void reset();
 };
 
 #endif

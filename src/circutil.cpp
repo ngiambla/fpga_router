@@ -1,8 +1,8 @@
 #include "cirdefs.h"
 #include "circuit.h"
+#include "router.h"
 #include "cconfig.h"
 #include <fstream>
-#include <stdio.h>
 
 const char * usage="Usage ./cirutils -file filename -switch [f | w] -isParallel [T | F]\n";
 
@@ -75,9 +75,12 @@ int main(int argc, char *argv[]) {
 	} else {
 		strcat(filename, argv[2]);
 		try { 
+			printf("\n\n############### [fpga_router] ###############\n\n");
+			printf("-- init.\n\n");
 			config=init_util(filename);
-			Circuit circuit=gen_circuit(config, argv[4][0]);		
-
+			Circuit circuit=gen_circuit(config, argv[4][0]);
+			Router router(config.get_netlist());
+			router.begin_routing(circuit);
 		} catch (const char* msg) { 
 			cerr << msg << endl;
 		}
