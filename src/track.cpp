@@ -7,6 +7,7 @@ void Track::connect_switches(Sblck &ls, Sblck &rs, int dir) {
 	}
 	sblcks.push_back(ls);
 	sblcks.push_back(rs);
+	
 }
 
 void Track::connect_lblck(Lblck &lblck, int dir) {

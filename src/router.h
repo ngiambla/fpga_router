@@ -7,6 +7,7 @@
 class Router {
 	private:
 		Circuit circuit;
+
 	public:
 		Router(Circuit circuit){
 			this->circuit=circuit;
@@ -17,6 +18,7 @@ class Router {
 		void traceback();
 		void check_for_target();
 		
+
 };
 
 
