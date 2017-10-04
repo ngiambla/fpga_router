@@ -21,4 +21,6 @@ using namespace std;
 #define NORTH 3 			//
 #define WEST 0 				//
 
+#define MAX_WEIGHT 10000	// For determining min pin assignment.
+
 #endif

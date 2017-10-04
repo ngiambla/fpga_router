@@ -98,6 +98,7 @@ class Circuit {
 		int get_width();
 		int get_size();
 		void reset();
+		void compute_stats();
 
 };
 

@@ -56,6 +56,12 @@ void Sblck::set_pin(int side, int pin, int weight) {
 	}
 }
 
+void Sblck::set_pin(int dest, int src, int pin, int weight) {
+	if(sw_type=='f') {
+		set_pin(dest, pin, weight);
+	}
+}
+
 int Sblck::get_pin(int side, int pin) {
 	switch(side) {
 		case NORTH:
@@ -68,6 +74,12 @@ int Sblck::get_pin(int side, int pin) {
 			return (*w_pins)[pin];
 		default:
 			throw "Invalid Side";
+	}
+}
+
+int Sblck::get_pin(int dest, int src, int pin) {
+	if(sw_type=='f') {
+		return get_pin(dest, pin);
 	}
 }
 
@@ -112,6 +124,14 @@ vector<int>*& Sblck::get_side(int dir){
 		default:
 			throw "Invalid Side";
 	}
+}
+
+int Sblck::get_x() {
+	return x;
+}
+
+int Sblck::get_y() {
+	return y;
 }
 
 

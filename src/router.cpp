@@ -1,9 +1,91 @@
 
 #include "router.h"
-#include <algorithm>
 
-void Router::traceback(){
+int add_block_to_path(Spath &cur_path, Sblck sblck) {
+	for(Sblck s : cur_path) {
+		if(sblck.get_x() == s.get_x() && sblck.get_y() == s.get_y()) {
+			return 0;
+		}
+	}
+	cur_path.push_back(sblck);
+	return 1;
+}
 
+void Router::traceback(Circuit &c, int x, int y, int pin, int side) {
+	int i, dir;
+	int min_pin_weight, cur_pin, next_side;
+	int cur_x=x, cur_y=y, cur_side=side;
+	int found_src=0;
+	vector<Sblck> cur_path;
+
+	c.get_switch(3,2).display_block();
+
+	while(found_src==0) {
+
+		min_pin_weight=MAX_WEIGHT;
+		Sblck blck=c.get_switch(cur_x,cur_y);
+
+		if(add_block_to_path(cur_path, blck)==0) {
+			printf("[ERR] -- encountered this block already.\n");
+			break;
+		}
+
+		printf("[INFO] @Sblock[%d][%d] **\n    Heading Back <<<<-- from [%d]\n", cur_x, cur_y, cur_side);
+
+		for(dir=0; dir<4; ++dir) {
+			for(i=0; i<c.get_width(); ++i) {
+				if(blck.is_side_avail(dir)==1) {
+					if(blck.get_pin(dir, cur_side, i) == 0) {
+						printf("FOUND_SRC\n");
+						found_src=1;
+						goto FOUND_SRC;
+					} else if(blck.get_pin(dir, cur_side, i) > 0) {
+						if(blck.get_pin(dir, cur_side, i) < min_pin_weight) {
+							min_pin_weight=blck.get_pin(dir, cur_side, i);
+							cur_pin=i;
+							next_side=dir;
+						}
+					}
+				}
+			}
+		}
+
+	
+		switch(next_side) {
+			case NORTH:
+				cur_x=cur_x+1;
+				cur_y=cur_y;
+				blck.set_pin(next_side, cur_side, cur_pin, UNAVAIL);
+				cur_side=SOUTH;
+				break;
+			case EAST:
+				cur_x=cur_x;
+				cur_y=cur_y-1; 
+				blck.set_pin(next_side, cur_side, cur_pin, UNAVAIL);
+				cur_side=WEST;
+				break;
+			case SOUTH:
+				cur_x=cur_x-1;
+				cur_y=cur_y;
+				blck.set_pin(next_side, cur_side, cur_pin, UNAVAIL);
+				cur_side=NORTH;
+				break;
+			case WEST:
+				cur_x=cur_x;
+				cur_y=cur_y+1;
+				blck.set_pin(next_side, cur_side, cur_pin, UNAVAIL);
+				cur_side=EAST;
+				break;
+		}
+	}
+
+	if(cur_path.size() > 0) {
+		complete_paths.push_back(cur_path);
+	} else {
+		printf("--Found nothing????\n");
+	}
+	FOUND_SRC:
+		printf("here...");
 }
 
 void Router::begin_traceback(Circuit &c, int x, int y, int came_from) {
@@ -11,39 +93,29 @@ void Router::begin_traceback(Circuit &c, int x, int y, int came_from) {
 	Sblck t_src=c.get_switch(x,y);
 	for(i=0;i<c.get_size();++i){
 		for(j=0;j<4;++j) {
-
+			if(t_src.is_side_avail(j)==1) {
+				if(t_src.get_pin(j, came_from, i) == USED) {
+					t_src.set_pin(j, came_from, i, UNAVAIL);					
+					traceback(c, x, y, i, j);
+				}
+			}
 		}	
 	}
 }
 
-int Router::check_for_target(Circuit &c, int x, int y) {
+int Router::check_for_target(Circuit &c, int x, int y, int came_from) {
 	int i, j;
 	Sblck p_trg=c.get_switch(x,y);
 	for(i=0; i<c.get_width();++i) {
-		if(p_trg.is_side_avail(NORTH)==1)
-			if(p_trg.get_pin(NORTH, i) == TARGET) {
-				p_trg.set_pin(NORTH, i, UNAVAIL);
-				target_hit=1;
-				return 1;
+		for(j=0; j<4; ++j){
+			if(p_trg.is_side_avail(j)==1) {
+				if(p_trg.get_pin(j, came_from, i) == TARGET) {
+					p_trg.set_pin(j, came_from, i, USED);
+					target_hit=1;
+					return 1;
+				}
 			}
-		if(p_trg.is_side_avail(EAST)==1)
-			if(p_trg.get_pin(EAST, i) == TARGET) {
-				target_hit=1;
-				p_trg.set_pin(EAST, i, UNAVAIL);
-				return 1;
-			}
-		if(p_trg.is_side_avail(SOUTH)==1)
-			if(p_trg.get_pin(SOUTH, i) == TARGET) {
-				p_trg.set_pin(SOUTH, i, UNAVAIL);
-				target_hit=1;
-				return 1;
-			}
-		if(p_trg.is_side_avail(WEST)==1)
-			if(p_trg.get_pin(WEST, i) == TARGET) {
-				p_trg.set_pin(WEST, i, UNAVAIL);
-				target_hit=1;
-				return 1;
-			}	
+		}	
 	}
 	return 0;
 }
@@ -89,9 +161,15 @@ void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, in
 		cur_heading=going[HEAD];
 		printf("[router] -- inspecting [%d][%d], heading [%d]\n", cur_x, cur_y, cur_heading);
 
-		if(check_for_target(c, cur_x, cur_y) == 1) {
+		if(check_for_target(c, cur_x, cur_y, cur_heading) == 1) {
 			printf("[SEARCH] --Target Acquired.\n");
-			begin_traceback(c, cur_x, cur_y, cur_heading);
+			if(HEAD ==0 ) {
+				printf("-- on the same line\n");
+			} else {
+				
+			}
+			//begin_traceback(c, cur_x, cur_y, cur_heading);
+
 			cin.ignore();
 			break;
 		}
@@ -229,7 +307,7 @@ int Router::begin_routing(Circuit &c) {
 			target_hit=0;
 		}
 		c.reset();
-
 	}
+	c.compute_stats();
 
 }
