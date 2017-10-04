@@ -23,7 +23,6 @@ class Sblck {
 
 	public:
 		Sblck(int width, char type) {
-			int i=0;
 			w_per_pin=width;
 			n_pins = new vector<int>();
 			e_pins = new vector<int>();

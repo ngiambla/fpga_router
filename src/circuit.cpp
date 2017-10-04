@@ -31,8 +31,8 @@ void Circuit::reset() {
 			for(k=0; k<width; ++k) {
 				for(side=0; side<4; ++side){
 					if(sgrid[i][j].is_side_avail(side)==1) {
-						if(sgrid[i][j].get_pin(side,i) >= 0 || sgrid[i][j].get_pin(side,i) == TARGET || sgrid[i][j].get_pin(side,i) == SOURCE) {
-							sgrid[i][j].set_pin(side,i, AVAIL);
+						if(sgrid[i][j].get_pin(side,k) >= 0 || sgrid[i][j].get_pin(side,k) == TARGET || sgrid[i][j].get_pin(side,k) == SOURCE) {
+							sgrid[i][j].set_pin(side,k, AVAIL);
 						}
 					}
 				}

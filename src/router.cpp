@@ -12,21 +12,25 @@ int Router::check_for_target(Circuit &c, int x, int y) {
 	for(i=0; i<c.get_width();++i) {
 		if(p_trg.is_side_avail(NORTH)==1)
 			if(p_trg.get_pin(NORTH, i) == TARGET) {
+				p_trg.set_pin(NORTH, i, UNAVAIL);
 				target_hit=1;
 				return 1;
 			}
 		if(p_trg.is_side_avail(EAST)==1)
 			if(p_trg.get_pin(EAST, i) == TARGET) {
 				target_hit=1;
+				p_trg.set_pin(EAST, i, UNAVAIL);
 				return 1;
 			}
 		if(p_trg.is_side_avail(SOUTH)==1)
 			if(p_trg.get_pin(SOUTH, i) == TARGET) {
+				p_trg.set_pin(SOUTH, i, UNAVAIL);
 				target_hit=1;
 				return 1;
 			}
 		if(p_trg.is_side_avail(WEST)==1)
 			if(p_trg.get_pin(WEST, i) == TARGET) {
+				p_trg.set_pin(WEST, i, UNAVAIL);
 				target_hit=1;
 				return 1;
 			}	
@@ -68,7 +72,8 @@ void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, in
 	going.push_back(heading2);
 
 
-	while(HEAD < sblcks_x.size() && HEAD <c.get_size()*c.get_size()) {
+	while(HEAD < sblcks_x.size()) {
+
 		cur_x=sblcks_x[HEAD];
 		cur_y=sblcks_y[HEAD];
 		cur_heading=going[HEAD];
@@ -83,7 +88,7 @@ void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, in
 
 		Sblck s_t = c.get_switch(cur_x, cur_y);
 
-		for(i=0; i< c.get_width(); ++i){
+		for(i=0; i< c.get_width(); ++i) {
 			switch(cur_heading){
 				case NORTH:
 					if(s_t.get_pin(SOUTH, i) != UNAVAIL) {
@@ -195,7 +200,7 @@ void Router::begin_search(Circuit &c, int x, int y, int init_dir) {
 int Router::begin_routing(Circuit &c) {
 
 	printf("[INFO] -- Routing has begun ..-*\n\n");
-
+	printf("[INFO] Routing [%d] nets.\n", netlist.size());
 	for(vector<int> net : netlist) {
 
 		Lblck lsrc = c.get_lblck(net[0], net[1]);
@@ -203,10 +208,15 @@ int Router::begin_routing(Circuit &c) {
 
 		Lblck ltrg = c.get_lblck(net[3], net[4]);
 		ltrg.set_as_target(net[5]-1);
-
+		c.get_switch(6, 4).display_block();
 		printf("[router] Routing lblck[%d][%d]@[%d] --> lblck[%d][%d]@[%d]\n", net[0],net[1],net[2],net[3],net[4],net[5]);
 		begin_search(c, net[0], net[1], net[2]-1);
-
+		if(target_hit!=1) {
+			printf("No Target Found.\n");
+			exit(-1);
+		} else {
+			target_hit=0;
+		}
 		c.reset();
 
 	}
