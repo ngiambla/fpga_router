@@ -19,7 +19,7 @@ class Sblck {
 		int w_per_pin;
 		char sw_type;
 
-		vector<int>* get_side(int dir);
+		vector<int>*& get_side(int dir);
 
 	public:
 		Sblck(int width, char type) {

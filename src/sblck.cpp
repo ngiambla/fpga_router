@@ -99,7 +99,7 @@ void Sblck::display_block() {
 	}
 }
 
-vector<int>* Sblck::get_side(int dir){
+vector<int>*& Sblck::get_side(int dir){
 	switch(dir) {
 		case NORTH:
 			return n_pins;
@@ -126,7 +126,7 @@ int Sblck::set_switch(int dest, int src, int pin) {
 			}
 		}
 	} else {
-		
+
 	}
 	
 }

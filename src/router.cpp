@@ -34,10 +34,27 @@ int Router::check_for_target(Circuit &c, int x, int y) {
 	return 0;
 }
 
+void Router::add_to_queue(vector<int> &_x, vector<int> &_y, vector<int> &_g, int x1, int y1, int dir) {
+	int i=0, append=0;
+	for(i=0; i<_x.size();++i) {
+		if(_x[i]== x1 && _y[i]==y1) {
+			append=1;
+			break;
+		}
+	}
+	if(append==0) {
+		_x.push_back(x1);
+		_y.push_back(y1);
+		_g.push_back(dir);
+	}
+}
+
 void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, int heading2) {
+
 	int HEAD=0, i=0, cur_x, cur_y, cur_heading;
 	char placeholder;
 	int eflag=0, nflag=0, sflag=0, wflag=0;
+
 	vector<int> sblcks_x;
 	vector<int> sblcks_y;
 	vector<int> going;
@@ -56,19 +73,14 @@ void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, in
 		cur_y=sblcks_y[HEAD];
 		cur_heading=going[HEAD];
 		printf("[router] -- inspecting [%d][%d], heading [%d]\n", cur_x, cur_y, cur_heading);
-		cin.ignore();
 
-		if(cur_x==17 && cur_y==9) {
-			cout >> placeholder;
-		}
 		if(check_for_target(c, cur_x, cur_y) == 1) {
 			printf("[SEARCH] --Target Acquired.\n");
 			begin_traceback(c, cur_x, cur_y, cur_heading);
+			cin.ignore();
 			break;
 		}
-		if(cur_x==17 && cur_y==9) {
-			cout >> placeholder;
-		}
+
 		Sblck s_t = c.get_switch(cur_x, cur_y);
 
 		for(i=0; i< c.get_width(); ++i){
@@ -140,28 +152,19 @@ void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, in
 			}
 		}
 		if(nflag==1) {
-
-			sblcks_x.push_back(cur_x-1);
-			sblcks_y.push_back(cur_y);
-			going.push_back(NORTH);
+			add_to_queue(sblcks_x, sblcks_y, going, cur_x-1, cur_y, NORTH);
 			nflag=0;
 		} 
 		if(sflag==1) {
-			sblcks_x.push_back(cur_x+1);
-			sblcks_y.push_back(cur_y);
-			going.push_back(SOUTH);
+			add_to_queue(sblcks_x, sblcks_y, going, cur_x+1, cur_y, SOUTH);
 			sflag=0;
 		}
 		if(eflag==1) {
-			sblcks_x.push_back(cur_x);
-			sblcks_y.push_back(cur_y+1);
-			going.push_back(EAST);	
+			add_to_queue(sblcks_x, sblcks_y, going, cur_x, cur_y+1, EAST);
 			eflag=0;	
 		}
 		if(wflag==1) {
-			sblcks_x.push_back(cur_x);
-			sblcks_y.push_back(cur_y-1);
-			going.push_back(WEST);
+			add_to_queue(sblcks_x, sblcks_y, going, cur_x, cur_y-1, WEST);
 			wflag=0;			
 		}
 		++HEAD;
