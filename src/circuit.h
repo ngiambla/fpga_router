@@ -55,7 +55,7 @@ class Circuit {
 			for(i=0; i<size; ++i) {
 				Lrow lrow;
 				for(j=0; j<size; ++j) {
-					lrow.push_back(Lblck(width));
+					lrow.push_back(Lblck(i,j,width));
 				}
 				lgrid.push_back(lrow);
 			}
@@ -63,7 +63,7 @@ class Circuit {
 			for(i=0; i<size+1; ++i) {
 				Srow srow;
 				for(j=0; j<size+1; ++j) {
-					srow.push_back(Sblck(width, type));
+					srow.push_back(Sblck(i,j,width, type));
 				}
 				sgrid.push_back(srow);
 			}

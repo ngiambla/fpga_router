@@ -10,11 +10,16 @@ class Lblck {
 		vector<int> * e_pins;
 		vector<int> * s_pins;
 		vector<int> * w_pins;
+
 		int w_per_pin;
 
+		int x;	// for plotting.
+		int y;
+
 	public:
-		Lblck(int width) {
-	 		int i=0;
+		Lblck(int x, int y, int width) {
+			this->x=x;
+			this->y=y;
 	 		w_per_pin=width;
 			n_pins = new vector<int>();
 			e_pins = new vector<int>();

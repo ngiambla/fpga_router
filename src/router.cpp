@@ -2,12 +2,22 @@
 #include "router.h"
 #include <algorithm>
 
-void Router::begin_traceback(Circuit &c, int x, int y, int came_from) {
+void Router::traceback(){
 
 }
 
+void Router::begin_traceback(Circuit &c, int x, int y, int came_from) {
+	int i, j;
+	Sblck t_src=c.get_switch(x,y);
+	for(i=0;i<c.get_size();++i){
+		for(j=0;j<4;++j) {
+
+		}	
+	}
+}
+
 int Router::check_for_target(Circuit &c, int x, int y) {
-	int i;
+	int i, j;
 	Sblck p_trg=c.get_switch(x,y);
 	for(i=0; i<c.get_width();++i) {
 		if(p_trg.is_side_avail(NORTH)==1)
@@ -208,8 +218,9 @@ int Router::begin_routing(Circuit &c) {
 
 		Lblck ltrg = c.get_lblck(net[3], net[4]);
 		ltrg.set_as_target(net[5]-1);
-		c.get_switch(6, 4).display_block();
+
 		printf("[router] Routing lblck[%d][%d]@[%d] --> lblck[%d][%d]@[%d]\n", net[0],net[1],net[2],net[3],net[4],net[5]);
+
 		begin_search(c, net[0], net[1], net[2]-1);
 		if(target_hit!=1) {
 			printf("No Target Found.\n");

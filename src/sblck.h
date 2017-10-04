@@ -19,11 +19,19 @@ class Sblck {
 		int w_per_pin;
 		char sw_type;
 
+		int x;	// to store coords for plot.
+		int y;	//
+
 		vector<int>*& get_side(int dir);
 
 	public:
-		Sblck(int width, char type) {
+		Sblck(int x, int y, int width, char type) {
+
+			this->x=x;
+			this->y=y;
+
 			w_per_pin=width;
+			
 			n_pins = new vector<int>();
 			e_pins = new vector<int>();
 			s_pins = new vector<int>();
