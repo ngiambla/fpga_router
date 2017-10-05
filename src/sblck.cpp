@@ -59,6 +59,8 @@ void Sblck::set_pin(int side, int pin, int weight) {
 void Sblck::set_pin(int dest, int src, int pin, int weight) {
 	if(sw_type=='f') {
 		set_pin(dest, pin, weight);
+	} else {
+		printf("To be implemented");
 	}
 }
 
@@ -134,6 +136,10 @@ int Sblck::get_y() {
 	return y;
 }
 
+
+void Sblck::display_id() {
+	printf("Sblck[%d][%d] \n", x,y);
+}
 
 int Sblck::set_switch(int dest, int src, int pin) {
 	vector<int> * src_v, * dest_v;

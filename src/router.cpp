@@ -28,34 +28,25 @@ void Router::traceback(Circuit &c, int x, int y, int pin, int side) {
 		}
 
 		printf("[INFO] @Sblock[%d][%d] **\n    Heading Back <<<<-- from [%d]\n", cur_x, cur_y, cur_side);
-		blck.display_block();
+
+		//blck.display_id();
+		//blck.display_block();
 
 		for(dir=0; dir<4; ++dir) {
 			for(i=0; i<c.get_width(); ++i) {
 				if(blck.is_side_avail(dir)==1) {
 					if(blck.get_pin(dir, cur_side, i) == 0) {
-						printf("FOUND_SRC\n");
+						
+						printf("[INFO] Source discovered. Saving Path.\n");
 						found_src=1;
 						goto FOUND_SRC;
+
 					} else if(blck.get_pin(dir, cur_side, i) > 0 && blck.is_side_avail(dir) == 1) {
 						if(blck.get_pin(dir, cur_side, i) < min_pin_weight) {
 							min_pin_weight=blck.get_pin(dir, cur_side, i);
-							printf("weight: %d pin: %d side: %d\n", min_pin_weight, i, dir);
+							//printf("weight: %d pin: %d side: %d\n", min_pin_weight, i, dir);
 							cur_pin=i;
-							switch(dir) {
-								case NORTH:
-									next_side=SOUTH;
-									break;
-								case EAST:
-									next_side=WEST;
-									break;
-								case SOUTH:
-									next_side=NORTH;
-									break;
-								case WEST:
-									next_side=EAST;
-									break;
-							}
+							next_side=dir;
 						}
 					}
 				}
@@ -65,39 +56,38 @@ void Router::traceback(Circuit &c, int x, int y, int pin, int side) {
 	
 		switch(next_side) {
 			case NORTH:
-				cur_x=cur_x+1;
+				cur_x=cur_x-1;
 				cur_y=cur_y;
 				cout << "NORTH\n";
 				blck.set_pin(next_side, cur_side, cur_pin, UNAVAIL);
+				cur_side=SOUTH;
 				break;
 			case EAST:
 				cur_x=cur_x;
-				cur_y=cur_y-1; 
+				cur_y=cur_y+1; 
 				cout << "EAST\n";
 				blck.set_pin(next_side, cur_side, cur_pin, UNAVAIL);
+				cur_side=WEST;
 				break;
 			case SOUTH:
-				cur_x=cur_x-1;
+				cur_x=cur_x+1;
 				cur_y=cur_y;
 				cout << "SOUTH\n";
 				blck.set_pin(next_side, cur_side, cur_pin, UNAVAIL);
+				cur_side=NORTH;
 				break;
 			case WEST:
 				cur_x=cur_x;
-				cur_y=cur_y+1;
+				cur_y=cur_y-1;
 				cout << "WEST\n";
 				blck.set_pin(next_side, cur_side, cur_pin, UNAVAIL);
+				cur_side=EAST;
 				break;
 		}
 	}
 
-	if(cur_path.size() > 0) {
-		complete_paths.push_back(cur_path);
-	} else {
-		printf("--Found nothing????\n");
-	}
 	FOUND_SRC:
-		printf("here...");
+		complete_paths.push_back(cur_path);
 }
 
 void Router::begin_traceback(Circuit &c, int x, int y, int came_from) {
@@ -110,6 +100,9 @@ void Router::begin_traceback(Circuit &c, int x, int y, int came_from) {
 				if(t_src.get_pin(j, came_from, i) == USED) {
 					t_src.set_pin(j, came_from, i, UNAVAIL);					
 					traceback(c, x, y, i, j);
+					i=MAX_WEIGHT;
+					j=MAX_WEIGHT;
+					break;
 				}
 			}
 		}	
@@ -118,7 +111,10 @@ void Router::begin_traceback(Circuit &c, int x, int y, int came_from) {
 
 int Router::check_for_target(Circuit &c, int x, int y, int came_from, int HEAD) {
 	int i, j;
+	vector<Sblck> cur_path;
+
 	Sblck p_trg=c.get_switch(x,y);
+
 	for(i=0; i<c.get_width();++i) {
 		for(j=0; j<4; ++j){
 			if(p_trg.is_side_avail(j)==1) {
@@ -126,6 +122,8 @@ int Router::check_for_target(Circuit &c, int x, int y, int came_from, int HEAD) 
 					if(HEAD==0){
 						p_trg.set_pin(j, came_from, i, UNAVAIL);
 						target_hit=1;
+						cur_path.push_back(p_trg);
+						complete_paths.push_back(cur_path);
 						return 1;
 
 					} else {
@@ -304,6 +302,7 @@ void Router::begin_search(Circuit &c, int x, int y, int init_dir) {
 
 int Router::begin_routing(Circuit &c) {
 
+	int cur_net=0;
 	printf("[INFO] -- Routing has begun ..-*\n\n");
 	printf("[INFO] Routing [%d] nets.\n", netlist.size());
 	for(vector<int> net : netlist) {
@@ -316,6 +315,13 @@ int Router::begin_routing(Circuit &c) {
 		printf("[router] Routing lblck[%d][%d]@[%d] --> lblck[%d][%d]@[%d]\n", net[0],net[1],net[2],net[3],net[4],net[5]);
 
 		begin_search(c, net[0], net[1], net[2]-1);
+
+		printf("###### Path [%d] ######\n", cur_net);
+		for(Sblck ss : complete_paths[cur_net]) {
+			ss.display_id();
+		}
+		printf("### End of Path ###\n");
+
 		if(target_hit!=1) {
 			printf("No Target Found.\n");
 			exit(-1);
@@ -323,6 +329,7 @@ int Router::begin_routing(Circuit &c) {
 			target_hit=0;
 		}
 		c.reset();
+		++cur_net;
 	}
 	c.compute_stats();
 

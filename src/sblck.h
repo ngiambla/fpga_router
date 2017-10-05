@@ -46,6 +46,7 @@ class Sblck {
 		}
 
 		void display_block();
+		void display_id();
 		void connect_track(Track &trck, int side);
 		void set_pin(int side, int pin, int weight);
 		void set_pin(int dest, int src, int pin, int weight);

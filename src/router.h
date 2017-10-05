@@ -20,11 +20,14 @@ class Router {
 		void begin_traceback(Circuit &c, int x, int y, int came_from);
 		void traceback(Circuit &c, int x, int y, int pin, int side);
 		int check_for_target(Circuit &c, int x, int y, int came_from, int HEAD);
+
 	public:
+
 		Router(vector< vector<int> > netlist){
 			this->netlist=netlist;
 			target_hit=0;
 		}
+		
 		int begin_routing(Circuit &c);
 };
 
