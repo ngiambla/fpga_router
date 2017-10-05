@@ -42,8 +42,8 @@ void Lblck::set_as_source(int side){
 				}
 				break;
 			case WEST:
-				if((*s_pins)[i] != UNAVAIL) {
-					(*s_pins)[i]=SOURCE;
+				if((*w_pins)[i] != UNAVAIL) {
+					(*w_pins)[i]=SOURCE;
 				}
 				break;
 			default:
@@ -72,8 +72,8 @@ void Lblck::set_as_target(int side){
 				}
 				break;
 			case WEST:
-				if((*s_pins)[i] != UNAVAIL) {
-					(*s_pins)[i]=TARGET;
+				if((*w_pins)[i] != UNAVAIL) {
+					(*w_pins)[i]=TARGET;
 				}
 				break;
 			default:

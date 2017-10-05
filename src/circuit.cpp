@@ -31,7 +31,7 @@ void Circuit::reset() {
 			for(k=0; k<width; ++k) {
 				for(side=0; side<4; ++side){
 					if(sgrid[i][j].is_side_avail(side)==1) {
-						if(sgrid[i][j].get_pin(side,k) >= 0 || sgrid[i][j].get_pin(side,k) == TARGET || sgrid[i][j].get_pin(side,k) == SOURCE) {
+						if(sgrid[i][j].get_pin(side,k) != UNAVAIL) {
 							sgrid[i][j].set_pin(side,k, AVAIL);
 						}
 					}
@@ -43,7 +43,7 @@ void Circuit::reset() {
 
 void Circuit::compute_stats() {
 	int i, j, k, side;
-	int num_unused_wires;
+	int num_unused_wires=0;
 	int avg_capacity_per_sblock=0;
 	int total_capacity=0;
 
