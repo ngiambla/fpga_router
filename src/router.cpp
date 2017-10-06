@@ -22,15 +22,13 @@ void Router::traceback(Circuit &c, int x, int y, int pin, int side) {
 
 	while(found_src==0) {
 		Sblck blck=c.get_switch(cur_x,cur_y);
+		blck.display_id();
 		if(add_block_to_path(cur_path, blck)==0) {
 			printf("[ERR] -- encountered this block already.\n");
 			break;
 		}
 
 		printf("[INFO] @Sblock[%d][%d] **\n    Heading Back <<<<-- from [%d]\n", cur_x, cur_y, cur_side);
-
-		//blck.display_id();
-		//blck.display_block();
 
 		for(dir=0; dir<4; ++dir) {
 			for(i=0; i<c.get_width(); ++i) {
@@ -42,9 +40,9 @@ void Router::traceback(Circuit &c, int x, int y, int pin, int side) {
 						goto FOUND_SRC;
 
 					} else if(blck.get_pin(dir, cur_side, i) > 0 && blck.is_side_avail(dir) == 1) {
+						blck.display_block();
 						if(blck.get_pin(dir, cur_side, i) < min_pin_weight) {
 							min_pin_weight=blck.get_pin(dir, cur_side, i);
-							//printf("weight: %d pin: %d side: %d\n", min_pin_weight, i, dir);
 							cur_pin=i;
 							next_side=dir;
 						}
@@ -194,7 +192,7 @@ void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, in
 		for(i=0; i< c.get_width(); ++i) {
 			switch(cur_heading){
 				case NORTH:
-					if(s_t.get_pin(SOUTH, i) != UNAVAIL) {
+					if(s_t.get_pin(SOUTH, NORTH, i) != UNAVAIL) {
 						if(s_t.is_side_avail(NORTH)==1) {
 							s_t.set_switch(NORTH, SOUTH, i);
 							nflag=1;
@@ -210,7 +208,7 @@ void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, in
 					}
 					break;
 				case EAST:
-					if(s_t.get_pin(WEST, i) != UNAVAIL) {
+					if(s_t.get_pin(WEST, EAST, i) != UNAVAIL) {
 						if(s_t.is_side_avail(NORTH)==1) {
 							s_t.set_switch(NORTH, WEST, i);
 							nflag=1;
@@ -226,7 +224,7 @@ void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, in
 					}
 					break;
 				case SOUTH:
-					if(s_t.get_pin(NORTH, i) != UNAVAIL) {
+					if(s_t.get_pin(NORTH, SOUTH, i) != UNAVAIL) {
 						if(s_t.is_side_avail(SOUTH)==1) {
 							s_t.set_switch(SOUTH, NORTH, i);
 							sflag=1;
@@ -242,7 +240,7 @@ void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, in
 					}
 					break;
 				case WEST:
-					if(s_t.get_pin(EAST, i) != UNAVAIL) {
+					if(s_t.get_pin(EAST, WEST, i) != UNAVAIL) {
 						if(s_t.is_side_avail(NORTH)==1) {
 							s_t.set_switch(NORTH, EAST, i);
 							nflag=1;						
@@ -319,6 +317,7 @@ int Router::begin_routing(Circuit &c) {
 		printf("###### Path [%d] ######\n", cur_net);
 		for(Sblck ss : complete_paths[cur_net]) {
 			ss.display_id();
+			ss.display_block();
 		}
 		printf("### End of Path ###\n");
 
