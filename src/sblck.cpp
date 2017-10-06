@@ -56,70 +56,58 @@ void Sblck::set_pin(int side, int pin, int weight) {
 	}
 }
 
+int Sblck::wilton(int dest, int src, int i) {
+	if(dest == src){
+		return i;
+	}
+	switch(src) {
+		case NORTH:
+			switch(dest) {
+				case EAST:
+					return n_to_e[i];
+				case SOUTH:
+					return i;
+				case WEST:
+					return n_to_w[i];
+			}
+		case EAST:
+			switch(dest) {
+				case NORTH:
+					return e_to_n[i];
+				case SOUTH:
+					return e_to_s[i];
+				case WEST:
+					return i;
+			}
+		case SOUTH:
+			switch(dest) {
+				case NORTH:
+					return i;
+				case EAST:
+					return s_to_e[i];
+				case WEST:
+					return s_to_w[i];
+			}
+		case WEST:
+			switch(dest) {
+				case NORTH:
+					return w_to_n[i];
+				case EAST:
+					return i;
+				case SOUTH:
+					return w_to_s[i];
+			}
+	}
+}
+
 void Sblck::set_pin(int dest, int src, int pin, int weight) {
 	int width = w_per_pin;
-	int i = pin;
-	if(sw_type=='f') {
+	int i;
+	if(sw_type=='f' || src == dest) {
 		set_pin(dest, pin, weight);
 	} else {
-		if(src != dest) {
-			switch(src) {
-				case NORTH:
-					switch(dest) {
-						case EAST:
-							set_pin(EAST, n_to_e[i], weight);
-							break;
-						case SOUTH:
-							set_pin(SOUTH, i, weight);
-							break;
-						case WEST:
-							set_pin(WEST, n_to_w[i], weight);
-							break;
-					}
-					break;
-				case EAST:
-					switch(dest) {
-						case NORTH:
-							set_pin(NORTH, e_to_n[i], weight);
-							break;
-						case SOUTH:
-							set_pin(SOUTH, e_to_s[i], weight);
-							break;
-						case WEST:
-							set_pin(WEST, i, weight);
-							break;
-					}
-					break;
-				case SOUTH:
-					switch(dest) {
-						case NORTH:
-							set_pin(NORTH, i, weight);
-							break;
-						case EAST:
-							set_pin(EAST, s_to_e[i], weight);
-							break;
-						case WEST:
-							set_pin(WEST, s_to_w[i], weight);
-							break;
-					}
-					break;
-				case WEST:
-					switch(dest) {
-						case NORTH:
-							set_pin(NORTH, w_to_n[i], weight);
-							break;
-						case EAST:
-							set_pin(EAST, i, weight);
-							break;
-						case SOUTH:
-							set_pin(SOUTH, w_to_s[i], weight);
-							break;
-					}
-					break;
-			}
-		} else {
-			set_pin(dest, pin, weight);
-		}
+		i=wilton(dest, src, pin);
+		set_pin(dest, i, weight);
 	}
 }
 
@@ -140,52 +128,12 @@ int Sblck::get_pin(int side, int pin) {
 
 int Sblck::get_pin(int dest, int src, int pin) {
 	int width = w_per_pin;
-	int i = pin;
+	int i;
 	if(sw_type=='f') {
 		return get_pin(dest, pin);
 	} else {
-		if(src != dest) {
-			switch(src) {
-				case NORTH:
-					switch(dest) {
-						case EAST:
-							return get_pin(EAST, n_to_e[i]);
-						case SOUTH:
-							return get_pin(SOUTH, i);
-						case WEST:
-							return get_pin(WEST, n_to_w[i]);
-					}
-				case EAST:
-					switch(dest) {
-						case NORTH:
-							return get_pin(NORTH, e_to_n[i]);
-						case SOUTH:
-							return get_pin(SOUTH, e_to_s[i]);
-						case WEST:
-							return get_pin(WEST, i);
-					}
-				case SOUTH:
-					switch(dest) {
-						case NORTH:
-							return get_pin(NORTH, i);
-						case EAST:
-							return get_pin(EAST, s_to_e[i]);
-						case WEST:
-							return get_pin(WEST, s_to_w[i]);
-					}
-				case WEST:
-					switch(dest) {
-						case NORTH:
-							return get_pin(NORTH, w_to_n[i]);
-						case EAST:
-							return get_pin(EAST, i);
-						case SOUTH:
-							return get_pin(SOUTH, w_to_s[i]);
-					}
-			}
-		} else {
-			get_pin(dest, pin);
-		}
+		i=wilton(dest, src, pin);
+		return get_pin(dest, i);
 	}
 }
 
@@ -246,6 +194,7 @@ void Sblck::display_id() {
 }
 
 int Sblck::set_switch(int dest, int src, int pin) {
+	int i;
 	vector<int> * src_v, * dest_v;
 	if(sw_type == 'f') {
 		if(is_side_avail(dest) == 1) {
@@ -259,83 +208,9 @@ int Sblck::set_switch(int dest, int src, int pin) {
 		if(is_side_avail(dest) == 1) {
 			src_v=get_side(src);
 			dest_v=get_side(dest);
-			switch(src) {
-				case NORTH:
-					switch(dest) {
-						case EAST:
-							if((*src_v)[pin] >= 0 && (*dest_v)[n_to_e[pin]] == AVAIL) {
-									(*dest_v)[n_to_e[pin]]=(*src_v)[pin]+1;
-							}
-							break;
-						case SOUTH:
-							if((*src_v)[pin] >= 0 && (*dest_v)[pin] == AVAIL) {
-									(*dest_v)[pin]=(*src_v)[pin]+1;
-							}
-							break;
-						case WEST:
-							if((*src_v)[pin] >= 0 && (*dest_v)[n_to_w[pin]] == AVAIL) {
-									(*dest_v)[n_to_w[pin]]=(*src_v)[pin]+1;
-							}
-							break;
-					}
-					break;
-				case EAST:
-					switch(dest) {
-						case NORTH:
-							if((*src_v)[pin] >= 0 && (*dest_v)[e_to_n[pin]] == AVAIL) {
-									(*dest_v)[e_to_n[pin]]=(*src_v)[pin]+1;
-							}
-							break;
-						case SOUTH:
-							if((*src_v)[pin] >= 0 && (*dest_v)[e_to_s[pin]] == AVAIL) {
-									(*dest_v)[e_to_s[pin]]=(*src_v)[pin]+1;
-							}
-							break;
-						case WEST:
-							if((*src_v)[pin] >= 0 && (*dest_v)[pin] == AVAIL) {
-									(*dest_v)[pin]=(*src_v)[pin]+1;
-							}
-							break;
-					}
-					break;
-				case SOUTH:
-					switch(dest) {
-						case NORTH:
-							if((*src_v)[pin] >= 0 && (*dest_v)[pin] == AVAIL) {
-									(*dest_v)[pin]=(*src_v)[pin]+1;
-							}
-							break;
-						case EAST:
-							if((*src_v)[pin] >= 0 && (*dest_v)[s_to_e[pin]] == AVAIL) {
-									(*dest_v)[s_to_e[pin]]=(*src_v)[pin]+1;
-							}
-							break;
-						case WEST:
-							if((*src_v)[pin] >= 0 && (*dest_v)[s_to_w[pin]] == AVAIL) {
-									(*dest_v)[s_to_w[pin]]=(*src_v)[pin]+1;
-							}
-							break;
-					}
-					break;
-				case WEST:
-					switch(dest) {
-						case NORTH:
-							if((*src_v)[pin] >= 0 && (*dest_v)[w_to_n[pin]] == AVAIL) {
-									(*dest_v)[w_to_n[pin]]=(*src_v)[pin]+1;
-							}
-							break;
-						case EAST:
-							if((*src_v)[pin] >= 0 && (*dest_v)[pin] == AVAIL) {
-									(*dest_v)[pin]=(*src_v)[pin]+1;
-							}
-							break;
-						case SOUTH:
-							if((*src_v)[pin] >= 0 && (*dest_v)[w_to_s[pin]] == AVAIL) {
-									(*dest_v)[w_to_s[pin]]=(*src_v)[pin]+1;
-							}
-							break;
-					}
-					break;
+			i=wilton(dest, src, pin);
+			if((*src_v)[pin] >= 0 && (*dest_v)[i] == AVAIL) {
+					(*dest_v)[i]=(*src_v)[pin]+1;
 			}
 		}
 	}

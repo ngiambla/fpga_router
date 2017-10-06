@@ -25,6 +25,7 @@ void Router::traceback(Circuit &c, int x, int y, int pin, int side) {
 		blck.display_id();
 		if(add_block_to_path(cur_path, blck)==0) {
 			printf("[ERR] -- encountered this block already.\n");
+			exit(-1);
 			break;
 		}
 
@@ -40,7 +41,6 @@ void Router::traceback(Circuit &c, int x, int y, int pin, int side) {
 						goto FOUND_SRC;
 
 					} else if(blck.get_pin(dir, cur_side, i) > 0 && blck.is_side_avail(dir) == 1) {
-						blck.display_block();
 						if(blck.get_pin(dir, cur_side, i) < min_pin_weight) {
 							min_pin_weight=blck.get_pin(dir, cur_side, i);
 							cur_pin=i;
@@ -96,7 +96,7 @@ void Router::begin_traceback(Circuit &c, int x, int y, int came_from) {
 		for(j=0;j<4;++j) {
 			if(t_src.is_side_avail(j)==1) {
 				if(t_src.get_pin(j, came_from, i) == USED) {
-					t_src.set_pin(j, came_from, i, UNAVAIL);					
+					t_src.set_pin(j, came_from, i, UNAVAIL);
 					traceback(c, x, y, i, j);
 					i=MAX_WEIGHT;
 					j=MAX_WEIGHT;
