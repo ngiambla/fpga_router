@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
 			printf("-- init.\n\n");
 			config=init_util(filename);
 			Circuit circuit=gen_circuit(config, argv[4][0]);
-			Router router(config.get_netlist());
+			Router router(config.get_netlist(), argv[6][0]);
 			router.begin_routing(circuit);
 		} catch (const char* msg) { 
 			cerr << msg << endl;

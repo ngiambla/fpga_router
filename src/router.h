@@ -13,18 +13,28 @@ class Router {
 
 		vector< vector<int> > netlist;
 		Spaths complete_paths;
+
+		vector<int> sblcks_x_p;
+		vector<int> sblcks_y_p;
+		vector<int> going_p;
+		int HEAD_P;
+
+		char is_parallel;
+
 		int target_hit;
 		void add_to_queue(vector<int> &_x, vector<int> &_y, vector<int> &_g, int x1, int y1, int dir);
 		void begin_search(Circuit &c, int x, int y, int init_dir);
 		void search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, int heading2);
+		void search_p(Circuit &c, int x1, int y1, int heading1);
 		void begin_traceback(Circuit &c, int x, int y, int came_from);
 		void traceback(Circuit &c, int x, int y, int pin, int side);
 		int check_for_target(Circuit &c, int x, int y, int came_from, int HEAD);
 
 	public:
 
-		Router(vector< vector<int> > netlist){
+		Router(vector< vector<int> > netlist, char is_parallel){
 			this->netlist=netlist;
+			this->is_parallel = is_parallel;
 			target_hit=0;
 		}
 		

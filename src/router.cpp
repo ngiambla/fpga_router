@@ -1,5 +1,9 @@
 
 #include "router.h"
+#include <thread>
+#include <mutex>
+
+mutex search_mut;
 
 int add_block_to_path(Spath &cur_path, Sblck sblck) {
 	for(Sblck s : cur_path) {
@@ -56,28 +60,24 @@ void Router::traceback(Circuit &c, int x, int y, int pin, int side) {
 			case NORTH:
 				cur_x=cur_x-1;
 				cur_y=cur_y;
-				cout << "NORTH\n";
 				blck.set_pin(next_side, cur_side, cur_pin, UNAVAIL);
 				cur_side=SOUTH;
 				break;
 			case EAST:
 				cur_x=cur_x;
 				cur_y=cur_y+1; 
-				cout << "EAST\n";
 				blck.set_pin(next_side, cur_side, cur_pin, UNAVAIL);
 				cur_side=WEST;
 				break;
 			case SOUTH:
 				cur_x=cur_x+1;
 				cur_y=cur_y;
-				cout << "SOUTH\n";
 				blck.set_pin(next_side, cur_side, cur_pin, UNAVAIL);
 				cur_side=NORTH;
 				break;
 			case WEST:
 				cur_x=cur_x;
 				cur_y=cur_y-1;
-				cout << "WEST\n";
 				blck.set_pin(next_side, cur_side, cur_pin, UNAVAIL);
 				cur_side=EAST;
 				break;
@@ -183,7 +183,7 @@ void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, in
 			if(HEAD != 0) {
 				begin_traceback(c, cur_x, cur_y, cur_heading);
 			}
-			cin.ignore();
+			//cin.ignore();
 			break;
 		}
 
@@ -277,20 +277,187 @@ void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, in
 	}
 }
 
+void Router::search_p(Circuit &c, int x1, int y1, int heading1) {
+
+	int i=0, j=0, cur_x, cur_y, cur_heading;
+	char placeholder;
+
+	int eflag=0, nflag=0, sflag=0, wflag=0;
+
+	search_mut.lock();
+
+	sblcks_x_p.push_back(x1);
+	sblcks_y_p.push_back(y1);
+	going_p.push_back(heading1);
+
+	search_mut.unlock();
+
+	while(HEAD_P < sblcks_x_p.size()) {
+
+
+		cur_x=sblcks_x_p[HEAD_P];
+		cur_y=sblcks_y_p[HEAD_P];
+		cur_heading=going_p[HEAD_P];
+
+		printf("[router] -- inspecting [%d][%d], heading [%d]\n", cur_x, cur_y, cur_heading);
+
+		search_mut.lock();
+		if(check_for_target(c, cur_x, cur_y, cur_heading, HEAD_P) == 1) {
+		search_mut.unlock();
+
+			printf("[SEARCH] --Target Acquired.\n");
+			if(HEAD_P != 0) {
+				search_mut.lock();
+				begin_traceback(c, cur_x, cur_y, cur_heading);
+				search_mut.unlock();
+			}
+
+			//cin.ignore();
+			break;
+		}
+
+		Sblck s_t = c.get_switch(cur_x, cur_y);
+
+		for(i=0; i< c.get_width(); ++i) {
+			
+			switch(cur_heading){
+				case NORTH:
+					if(s_t.get_pin(SOUTH, NORTH, i) != UNAVAIL) {
+						if(s_t.is_side_avail(NORTH)==1) {
+							s_t.set_switch(NORTH, SOUTH, i);
+							nflag=1;
+						}
+						if(s_t.is_side_avail(EAST)==1) {
+							s_t.set_switch(EAST, SOUTH, i);
+							eflag=1;
+						}
+						if(s_t.is_side_avail(WEST)==1) {
+							s_t.set_switch(WEST, SOUTH, i);
+							wflag=1;
+						}
+					}
+					break;
+				case EAST:
+					if(s_t.get_pin(WEST, EAST, i) != UNAVAIL) {
+						if(s_t.is_side_avail(NORTH)==1) {
+							s_t.set_switch(NORTH, WEST, i);
+							nflag=1;
+						}
+						if(s_t.is_side_avail(EAST)==1) {
+							s_t.set_switch(EAST, WEST, i);
+							eflag=1;
+						}
+						if(s_t.is_side_avail(SOUTH)==1) {
+							s_t.set_switch(SOUTH, WEST, i);
+							sflag=1;						
+						}
+					}
+					break;
+				case SOUTH:
+					if(s_t.get_pin(NORTH, SOUTH, i) != UNAVAIL) {
+						if(s_t.is_side_avail(SOUTH)==1) {
+							s_t.set_switch(SOUTH, NORTH, i);
+							sflag=1;
+						}
+						if(s_t.is_side_avail(EAST)==1) {
+							s_t.set_switch(EAST, NORTH, i);
+							eflag=1;						
+						}
+						if(s_t.is_side_avail(WEST)==1) {
+							s_t.set_switch(WEST, NORTH, i);
+							wflag=1;						
+						}
+					}
+					break;
+				case WEST:
+					if(s_t.get_pin(EAST, WEST, i) != UNAVAIL) {
+						if(s_t.is_side_avail(NORTH)==1) {
+							s_t.set_switch(NORTH, EAST, i);
+							nflag=1;						
+						}
+						if(s_t.is_side_avail(SOUTH)==1) {
+							s_t.set_switch(SOUTH, EAST, i);
+							sflag=1;												
+						}
+						if(s_t.is_side_avail(WEST)==1) {
+							s_t.set_switch(WEST, EAST, i);
+							wflag=1;						
+						}
+					}
+					break;
+			}
+		}
+
+		search_mut.lock();
+		if(nflag==1) {
+			add_to_queue(sblcks_x_p, sblcks_y_p, going_p, cur_x-1, cur_y, NORTH);
+			nflag=0;
+		} 
+		if(sflag==1) {
+			add_to_queue(sblcks_x_p, sblcks_y_p, going_p, cur_x+1, cur_y, SOUTH);
+			sflag=0;
+		}
+		if(eflag==1) {
+			add_to_queue(sblcks_x_p, sblcks_y_p, going_p, cur_x, cur_y+1, EAST);
+			eflag=0;	
+		}
+		if(wflag==1) {
+			add_to_queue(sblcks_x_p, sblcks_y_p, going_p, cur_x, cur_y-1, WEST);
+			wflag=0;			
+		}
+		++HEAD_P;
+		search_mut.unlock();
+	}
+}
+
 void Router::begin_search(Circuit &c, int x, int y, int init_dir) {
 	printf("[INFO] -- Beginning Search.\n");
+
+
 	switch(init_dir) {
 		case NORTH:
-			search(c, x, y, WEST, x, y+1, EAST);
+			if(is_parallel == 'F'){
+				search(c, x, y, WEST, x, y+1, EAST);
+			} else {
+				thread st1= thread(&Router::search_p, this, ref(c), x, y, WEST);
+				thread st2= thread(&Router::search_p, this, ref(c), x, y+1, EAST);
+
+				st1.join();
+				st2.join();
+			}
 			break;
 		case EAST:
-			search(c, x, y+1, NORTH, x+1, y+1, SOUTH);
+			if(is_parallel == 'F') {
+				search(c, x, y+1, NORTH, x+1, y+1, SOUTH);
+			} else {
+				thread st1= thread(&Router::search_p, this, ref(c), x, y+1, NORTH);
+				thread st2= thread(&Router::search_p, this, ref(c), x+1, y+1, SOUTH);
+
+				st1.join();
+				st2.join();
+			}
 			break;
 		case SOUTH:
-			search(c, x+1, y, WEST, x+1, y+1, EAST);
+			if(is_parallel == 'F') {
+				search(c, x+1, y, WEST, x+1, y+1, EAST);
+			} else {
+				thread st1= thread(&Router::search_p, this, ref(c), x+1, y, WEST);
+				thread st2= thread(&Router::search_p, this, ref(c), x+1, y+1, EAST);
+
+				st1.join();
+				st2.join();
+			}
 			break;
 		case WEST:
-			search(c, x, y, NORTH, x+1, y, SOUTH);
+			if(is_parallel == 'F') {
+				search(c, x, y, NORTH, x+1, y, SOUTH);
+			} else {
+				thread st1= thread(&Router::search_p, this, ref(c), x, y, NORTH);
+				thread st2= thread(&Router::search_p, this, ref(c), x+1, y, SOUTH);
+
+				st1.join();
+				st2.join();
+			}
 			break;
 		default:
 			throw "Incorrect Direction";
@@ -310,20 +477,23 @@ int Router::begin_routing(Circuit &c) {
 
 		Lblck ltrg = c.get_lblck(net[3], net[4]);
 		ltrg.set_as_target(net[5]-1);
-		printf("[router] Routing lblck[%d][%d]@[%d] --> lblck[%d][%d]@[%d]\n", net[0],net[1],net[2],net[3],net[4],net[5]);
+		printf("[router] Routing lblck[%d][%d]@[%d] --> lblck[%d][%d]@[%d]\n", net[0],net[1],net[2]-1,net[3],net[4],net[5]-1);
 
 		begin_search(c, net[0], net[1], net[2]-1);
 
-		printf("###### Path [%d] ######\n", cur_net);
-		for(Sblck ss : complete_paths[cur_net]) {
-			ss.display_id();
-			ss.display_block();
+		if(complete_paths.size() == cur_net && complete_paths.size() > 0) {
+			// printf("###### Path [%d] ######\n", cur_net);
+			// for(Sblck ss : complete_paths[cur_net]) {
+			// 	ss.display_id();
+			// 	ss.display_block();
+			// }
+			// printf("### End of Path ###\n");
 		}
-		printf("### End of Path ###\n");
 
 		if(target_hit!=1) {
 			printf("No Target Found.\n");
-			exit(-1);
+			if(is_parallel != 'T')
+				exit(-1);
 		} else {
 			target_hit=0;
 		}
