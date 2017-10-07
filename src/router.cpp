@@ -17,20 +17,25 @@ int add_block_to_path(Spath &cur_path, Sblck sblck) {
 
 void Router::traceback(Circuit &c, int x, int y, int pin, int side) {
 	int i, dir;
-	int min_pin_weight, cur_pin, next_side;
+	int min_pin_weight, cur_pin=pin, next_side;
 	int cur_x=x, cur_y=y, cur_side=side;
 	int found_src=0;
 	vector<Sblck> cur_path;
+	vector<Path> cur_path_p;
 	
 	min_pin_weight=MAX_WEIGHT;
 
 	while(found_src==0) {
 		Sblck blck=c.get_switch(cur_x,cur_y);
-		blck.display_id();
+		//blck.display_id();
 		if(add_block_to_path(cur_path, blck)==0) {
 			printf("[ERR] -- encountered this block already.\n");
 			exit(-1);
 			break;
+		} else {
+			Path p(cur_pin, cur_side, blck);
+			cur_path_p.push_back(p);
+			blck.display_id();
 		}
 
 		printf("[INFO] @Sblock[%d][%d] **\n    Heading Back <<<<-- from [%d]\n", cur_x, cur_y, cur_side);
@@ -85,7 +90,8 @@ void Router::traceback(Circuit &c, int x, int y, int pin, int side) {
 	}
 
 	FOUND_SRC:
-		complete_paths.push_back(cur_path);
+		//complete_paths.push_back(cur_path);
+		all_paths.push_back(cur_path_p);
 }
 
 void Router::begin_traceback(Circuit &c, int x, int y, int came_from) {
@@ -109,7 +115,8 @@ void Router::begin_traceback(Circuit &c, int x, int y, int came_from) {
 
 int Router::check_for_target(Circuit &c, int x, int y, int came_from, int HEAD) {
 	int i, j;
-	vector<Sblck> cur_path;
+	//vector<Sblck> cur_path;
+	vector<Path> cur_path;
 
 	Sblck p_trg=c.get_switch(x,y);
 
@@ -120,8 +127,11 @@ int Router::check_for_target(Circuit &c, int x, int y, int came_from, int HEAD) 
 					if(HEAD==0){
 						p_trg.set_pin(j, came_from, i, UNAVAIL);
 						target_hit=1;
-						cur_path.push_back(p_trg);
-						complete_paths.push_back(cur_path);
+						Path p(i, came_from, p_trg);
+						cur_path.push_back(p);
+						all_paths.push_back(cur_path);
+						// cur_path.push_back(p_trg);
+						// complete_paths.push_back(cur_path);
 						return 1;
 
 					} else {
@@ -465,7 +475,7 @@ void Router::begin_search(Circuit &c, int x, int y, int init_dir) {
 
 }
 
-int Router::begin_routing(Circuit &c) {
+Paths_t Router::begin_routing(Circuit &c) {
 
 	int cur_net=0;
 	printf("[INFO] -- Routing has begun ..-*\n\n");
@@ -481,7 +491,7 @@ int Router::begin_routing(Circuit &c) {
 
 		begin_search(c, net[0], net[1], net[2]-1);
 
-		if(complete_paths.size() == cur_net && complete_paths.size() > 0) {
+		if(all_paths.size() == cur_net && all_paths.size() > 0) {
 			// printf("###### Path [%d] ######\n", cur_net);
 			// for(Sblck ss : complete_paths[cur_net]) {
 			// 	ss.display_id();
@@ -501,5 +511,5 @@ int Router::begin_routing(Circuit &c) {
 		++cur_net;
 	}
 	c.compute_stats();
-
+	return all_paths;
 }

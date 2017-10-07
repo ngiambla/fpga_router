@@ -14,9 +14,15 @@ PLATFORM = X11
 #PLATFORM = WIN32
 #PLATFORM = NO_GRAPHICS
 
-HDR = graphics.h easygl_constants.h
-SRC = graphics.cpp example.cpp
-EXE = example
+#HDR = graphics.h easygl_constants.h
+#SRC = graphics.cpp example.cpp 
+
+HDR = graphics.h circutil.h circuit.h lblck.h sblck.h router.h
+SRC = graphics.cpp circutil.cpp circuit.cpp lblck.cpp sblck.cpp router.cpp
+
+#EXE = example
+
+EXE = circutil
 BACKUP_FILENAME=`date "+backup-%Y%m%d-%H%M.zip"`
 FLAGS = -g -Wall -D$(PLATFORM)
 UNAME := $(shell uname)
@@ -36,23 +42,28 @@ else
 	endif
 endif
 
+$(EXE):
+	g++ $(FLAGS) -std=c++11 -o circutil circutil.cpp circuit.cpp lblck.cpp sblck.cpp router.cpp graphics.cpp -lpthread $(GRAPHICS_LIBS)
 
-$(EXE): graphics.o example.o
-	g++ $(FLAGS) graphics.o example.o $(GRAPHICS_LIBS) -o $(EXE)
+# $(EXE): graphics.o circutil.o circuit.o lblck.o sblck.o router.o
+# 	g++ $(FLAGS) graphics.o circutil.o circuit.o lblck.o sblck.o router.o $(GRAPHICS_LIBS) -lpthread -o $(EXE)
 
-graphics.o: graphics.cpp $(HDR)
-	g++ -c $(FLAGS) graphics.cpp
 
-example.o: example.cpp $(HDR)
-	g++ -c $(FLAGS) example.cpp
+# graphics.o: graphics.cpp $(HDR)
+# 	g++ -c $(FLAGS) graphics.cpp
 
-backup:
-# Back up the source, makefile and Visual Studio project & solution. 
-	echo Backing up your files into ${BACKUP_FILENAME}
-	zip ${BACKUP_FILENAME} $(SRC) $(HDR) makefile easygl.sln easygl.vcxproj
+# example.o: example.cpp $(HDR)
+# 	g++ -c $(FLAGS) example.cpp
 
-src:
-	g++ -std=c++11 -o circutil circutil.cpp circuit.cpp lblck.cpp sblck.cpp router.cpp -lpthread
+
+
+# backup:
+# # Back up the source, makefile and Visual Studio project & solution. 
+# 	echo Backing up your files into ${BACKUP_FILENAME}
+# 	zip ${BACKUP_FILENAME} $(SRC) $(HDR) makefile easygl.sln easygl.vcxproj
+
+# src:
+# 	g++ -std=c++11 -o circutil circutil.cpp circuit.cpp lblck.cpp sblck.cpp router.cpp graphics.cpp -lpthread
 
 clean:
-	rm $(EXE) *.o
+	rm $(EXE)
