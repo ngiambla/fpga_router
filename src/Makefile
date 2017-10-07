@@ -41,7 +41,7 @@ backup:
 	zip ${BACKUP_FILENAME} $(SRC) $(HDR) makefile easygl.sln easygl.vcxproj
 
 src:
-	g++ -std=c++11 -o circutil circutil.cpp circuit.cpp lblck.cpp sblck.cpp router.cpp
+	g++ -std=c++11 -o circutil circutil.cpp circuit.cpp lblck.cpp sblck.cpp router.cpp -lpthread
 
 clean:
 	rm $(EXE) *.o

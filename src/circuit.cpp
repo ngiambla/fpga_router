@@ -52,8 +52,8 @@ void Circuit::compute_stats() {
 	/* Inspect H_Tracks */
 	for(i=0; i<size+1; ++i) {
 		for(j=0; j<size; ++j) {
-			for(int i : h_tracks[i][j].get_track()) {
-				if(i!=UNAVAIL){
+			for(int k : h_tracks[i][j].get_track()) {
+				if(k!=UNAVAIL){
 					num_unused_wires++;
 				}
 			}
@@ -62,8 +62,8 @@ void Circuit::compute_stats() {
 	/* Inspect V_tracks */
 	for(i=0; i<size; ++i) {
 		for(j=0; j<size+1; ++j) {
-			for(int i : v_tracks[i][j].get_track()) {
-				if(i!=UNAVAIL){
+			for(int k : v_tracks[i][j].get_track()) {
+				if(k!=UNAVAIL){
 					num_unused_wires++;
 				}
 			}
