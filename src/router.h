@@ -4,6 +4,7 @@
 #include "cirdefs.h"
 #include "circuit.h"
 #include "sblck.h"
+#include "path.h"
 
 typedef vector<Sblck> Spath;
 typedef vector<Spath> Spaths;

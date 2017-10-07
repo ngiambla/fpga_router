@@ -19,12 +19,23 @@ SRC = graphics.cpp example.cpp
 EXE = example
 BACKUP_FILENAME=`date "+backup-%Y%m%d-%H%M.zip"`
 FLAGS = -g -Wall -D$(PLATFORM)
+UNAME := $(shell uname)
 
 # Need to tell the linker to link to the X11 libraries.
 # WIN32 automatically links to the win32 API libraries (no need for flags)
-ifeq ($(PLATFORM),X11)
-   GRAPHICS_LIBS = -lX11
+
+$(System is $(UNAME))
+
+ifeq ($(UNAME), Darwin)
+	ifeq ($(PLATFORM),X11)
+	   GRAPHICS_LIBS = -lX11 -L/usr/X11/lib -I/usr/X11/include
+	endif
+else
+	ifeq ($(PLATFORM),X11)
+	   GRAPHICS_LIBS = -lX11
+	endif
 endif
+
 
 $(EXE): graphics.o example.o
 	g++ $(FLAGS) graphics.o example.o $(GRAPHICS_LIBS) -o $(EXE)
