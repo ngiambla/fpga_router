@@ -9,7 +9,7 @@ const char * usage="Usage ./cirutils -file filename -switch [f | w] -isParallel 
 
 void delay (void);
 void drawscreen (void);
-void act_on_new_button_func (void (*drawscreen_ptr) (void));
+void layout_circuit(Circuit c);
 void act_on_button_press (float x, float y);
 void act_on_mouse_move (float x, float y);
 void act_on_key_press (char c);
@@ -21,10 +21,13 @@ static bool line_entering_demo = false;
 static float x1, y1, x2, y2;  
 static int num_new_button_clicks = 0;
 
+static Circuit circuit;
+Paths_t paths;
+
 CConfig init_util(char * filename) {
 	CConfig config;
     FILE *fp;
-    int read_int, decode_stage=0;
+    int decode_stage=0;
     char line[128];
 
 	fp = fopen(filename, "r");
@@ -93,48 +96,30 @@ int main(int argc, char *argv[]) {
 			printf("\n\n############### [fpga_router] ###############\n\n");
 			printf("-- init.\n\n");
 			config=init_util(filename);
-			Circuit circuit=gen_circuit(config, argv[4][0]);
+			circuit=gen_circuit(config, argv[4][0]);
 			Router router(config.get_netlist(), argv[6][0]);
-			Paths_t paths=router.begin_routing(circuit);
+			paths=router.begin_routing(circuit);
+
 			if(paths.size() == 0) {
 				printf("[ERROR] Fatal Error. Netlist unroutable.\n");
 				exit(-1);
 			}
+
 			printf("-- Going to Display.\n");
-			init_graphics("#### [FPGA Router] ####", WHITE);
-   			init_world (0.,0.,1000.,1000.);
-			/* animation section */
+			init_graphics("#-##-###-#### [FPGA Router] ####-###-##-#", WHITE);
+
+   			init_world (0, 0, 1000, 1000);			
 			clearscreen();
-			update_message("Non-interactive (animation) graphics example.");
-			setcolor (RED);
-			setlinewidth(1);
-			setlinestyle (DASHED);
-			init_world (0.,0.,1000.,1000.);
-			for (i=0; i<50; i++) {
-				drawline ((float)i,(float)(10.*i),(float)(i+500.),(float)(10.*i+10.));
-				flushinput();
-				delay(); 
-			}
 
-			/* Draw an interactive still picture again.  I'm also creating one new button. */
 
-			init_world (0.,0.,1000.,1000.);
-			update_message("Interactive graphics #2. Click in graphics area to rubber band line.");
-			create_button ("Window", "0 Clicks", act_on_new_button_func);
+			set_keypress_input (false);
+			set_mouse_move_input (false);
 
-			// Enable mouse movement (not just button presses) and key board input.
-			// The appropriate callbacks will be called by event_loop.
-			set_keypress_input (true);
-			set_mouse_move_input (true);
-			line_entering_demo = true;
-
-			// draw the screen once before calling event loop, so the picture is correct 
-			// before we get user input.
-			drawscreen(); 
+			drawscreen();
 			event_loop(act_on_button_press, act_on_mouse_move, act_on_key_press, drawscreen);
 
 			close_graphics ();
-			printf ("Graphics closed down.\n");
+			printf ("[Router] Completed. Exited\n>\n>\n");
 
 
 		} catch (const char* msg) { 
@@ -147,116 +132,154 @@ int main(int argc, char *argv[]) {
 
 
 void drawscreen (void) {
+	int i, j, k; 
+	int blck_sz=50;
+	int grid_size=circuit.get_size();
+	int width_size = circuit.get_width();
+	float inc_wire=blck_sz/(2*width_size);
 
-/* redrawing routine for still pictures.  Graphics package calls  *
- * this routine to do redrawing after the user changes the window *
- * in any way.                                                    */
+	set_draw_mode (DRAW_NORMAL);
+	clearscreen();
 
-   t_point polypts[3] = {{500.,400.},{450.,480.},{550.,480.}};
-   t_point polypts2[4] = {{700.,400.},{650.,480.},{750.,480.}, {800.,400.}};
- 
-   set_draw_mode (DRAW_NORMAL);  // Should set this if your program does any XOR drawing in callbacks.
-   clearscreen();  /* Should precede drawing for all drawscreens */
+	//Draw Switch Blocks
+	for(i=0; i< grid_size*2+1; ++i) {
+		for(j=0; j<grid_size*2+1; ++j) {
+			if(i%2==0) {
+				if(j%2==0) {
+					setcolor(DARKGREY);
+					fillrect(10+j*blck_sz, 10+i*blck_sz, 60+j*blck_sz, 60+i*blck_sz);
+				} 
+				else {
+					for(k=0;k<width_size*2; ++k) {
+						if(k%2==0){
+							setcolor(BLACK);
+							drawline (10+j*blck_sz,10+i*blck_sz+k*inc_wire,60+j*blck_sz,10+i*blck_sz+k*inc_wire);
+						}
+					}
+				}
+			} else {
+				if(j%2==0) {
 
-   setfontsize (10);
-   setlinestyle (SOLID);
-   setlinewidth (1);
-   setcolor (BLACK);
+				}
+				// complete switch block logic.
+			}
+		}
+	}
 
-   drawtext (110.,55.,"colors",150.);
-   setcolor (LIGHTGREY);
-   fillrect (150.,30.,200.,80.);
-   setcolor (DARKGREY);
-   fillrect (200.,30.,250.,80.);
-   setcolor (WHITE);
-   fillrect (250.,30.,300.,80.);
-   setcolor (BLACK);
-   fillrect (300.,30.,350.,80.);
-   setcolor (BLUE);
-   fillrect (350.,30.,400.,80.);
-   setcolor (GREEN);
-   fillrect (400.,30.,450.,80.);
-   setcolor (YELLOW);
-   fillrect (450.,30.,500.,80.);
-   setcolor (CYAN);
-   fillrect (500.,30.,550.,80.);
-   setcolor (RED);
-   fillrect (550.,30.,600.,80.);
-   setcolor (DARKGREEN);
-   fillrect (600.,30.,650.,80.);
-   setcolor (MAGENTA);
-   fillrect (650.,30.,700.,80.);
-   setcolor (WHITE);
-   drawtext (400.,55.,"fillrect",150.);
+	//Draw Logic Blocks
+	for(i=0; i<grid_size*2; ++i) {
+		for(j=0; j<grid_size*2; ++j) {
+			if(i%2==0) {
+				if(j%2==0) {
+					setcolor(LIGHTGREY);
+					fillrect(60+j*blck_sz, 60+i*blck_sz, 110+j*blck_sz, 110+i*blck_sz);
+				} else {
+					setcolor(WHITE);
+					fillrect(60+j*blck_sz, 60+i*blck_sz, 110+j*blck_sz, 110+i*blck_sz);
+				}
+			}
+		}
+	}
 
-   setcolor (BLACK);
-   drawtext (250.,150.,"drawline",150.);
-   setlinestyle (SOLID);
-   drawline (200.,120.,200.,200.);
-   setlinestyle (DASHED);
-   drawline (300.,120.,300.,200.);
+	// setfontsize (10);
+	// setlinestyle (SOLID);
+	// setlinewidth (1);
+	// setcolor (BLACK);
 
-   setcolor (MAGENTA);
-   drawtext (450, 160, "drawellipticarc", 150);
-   drawellipticarc (550, 160, 30, 60, 90, 270);
-   drawtext (720, 160, "fillellipticarc", 150);
-   fillellipticarc (800, 160, 30, 60, 90, 270);
+	// drawtext (110.,55.,"colors",150.);
+	// setcolor (LIGHTGREY);
+	// fillrect (150.,30.,200.,80.);
+	// setcolor (DARKGREY);
+	// fillrect (200.,30.,250.,80.);
+	// setcolor (WHITE);
+	// fillrect (250.,30.,300.,80.);
+	// setcolor (BLACK);
+	// fillrect (300.,30.,350.,80.);
+	// setcolor (BLUE);
+	// fillrect (350.,30.,400.,80.);
+	// setcolor (GREEN);
+	// fillrect (400.,30.,450.,80.);
+	// setcolor (YELLOW);
+	// fillrect (450.,30.,500.,80.);
+	// setcolor (CYAN);
+	// fillrect (500.,30.,550.,80.);
+	// setcolor (RED);
+	// fillrect (550.,30.,600.,80.);
+	// setcolor (DARKGREEN);
+	// fillrect (600.,30.,650.,80.);
+	// setcolor (MAGENTA);
+	// fillrect (650.,30.,700.,80.);
+	// setcolor (WHITE);
+	// drawtext (400.,55.,"fillrect",150.);
 
-   setcolor (BLUE);
-   drawtext (190.,300.,"drawarc",150.);
-   drawarc (190.,300.,50.,0.,270.);
-   drawarc (300.,300.,50.,0.,-180.);
-   fillarc (410.,300.,50.,90., -90.);
-   fillarc (520.,300.,50.,0.,360.);
-   setcolor (BLACK);
-   drawtext (520.,300.,"fillarc",150.);
-   setcolor (BLUE);
-   fillarc (630.,300.,50.,90.,180.);
-   fillarc (740.,300.,50.,90.,270.);
-   fillarc (850.,300.,50.,90.,30.);
-   setcolor (RED);
-   fillpoly(polypts,3);
-   fillpoly(polypts2,4);
-   setcolor (BLACK);
-   drawtext (500.,450.,"fillpoly",150.);
-   setcolor (DARKGREEN);
-   drawtext (500.,610.,"drawrect",150.);
-   drawrect (350.,550.,650.,670.); 
-   
+	// setcolor (BLACK);
+	// drawtext (250.,150.,"drawline",150.);
+	// setlinestyle (SOLID);
+	// drawline (200.,120.,200.,200.);
+	// setlinestyle (DASHED);
+	// drawline (300.,120.,300.,200.);
 
-   setcolor (BLACK);
-   setfontsize (8);
-   drawtext (100.,770.,"8 Point Text",800.);
-   setfontsize (12);
-   drawtext (400.,770.,"12 Point Text",800.);
-   setfontsize (15);
-   drawtext (700.,770.,"18 Point Text",800.);
-   setfontsize (24);
-   drawtext (300.,830.,"24 Point Text",800.);
-   setfontsize (32);
-   drawtext (700.,830.,"32 Point Text",800.);
-   setfontsize (10);
-  
-   setlinestyle (SOLID);
-   drawtext (200.,900.,"Thin line (width 1)",800.);
-   setlinewidth (1);
-   drawline (100.,920.,300.,920.);
-   drawtext (500.,900.,"Width 3 Line",800.);
-   setlinewidth (3);
-   drawline (400.,920.,600.,920.);
-   drawtext (800.,900.,"Width 6 Line",800.);
-   setlinewidth (6);
-   drawline (700.,920.,900.,920.);
+	// setcolor (MAGENTA);
+	// drawtext (450, 160, "drawellipticarc", 150);
+	// drawellipticarc (550, 160, 30, 60, 90, 270);
+	// drawtext (720, 160, "fillellipticarc", 150);
+	// fillellipticarc (800, 160, 30, 60, 90, 270);
 
-   setlinewidth (1);
-   setcolor (GREEN);
+	// setcolor (BLUE);
+	// drawtext (190.,300.,"drawarc",150.);
+	// drawarc (190.,300.,50.,0.,270.);
+	// drawarc (300.,300.,50.,0.,-180.);
+	// fillarc (410.,300.,50.,90., -90.);
+	// fillarc (520.,300.,50.,0.,360.);
+	// setcolor (BLACK);
+	// drawtext (520.,300.,"fillarc",150.);
+	// setcolor (BLUE);
+	// fillarc (630.,300.,50.,90.,180.);
+	// fillarc (740.,300.,50.,90.,270.);
+	// fillarc (850.,300.,50.,90.,30.);
+	// setcolor (RED);
+	// fillpoly(polypts,3);
+	// fillpoly(polypts2,4);
+	// setcolor (BLACK);
+	// drawtext (500.,450.,"fillpoly",150.);
+	// setcolor (DARKGREEN);
+	// drawtext (500.,610.,"drawrect",150.);
+	// drawrect (350.,550.,650.,670.); 
 
-   
-   if (have_entered_line) 
-      drawline (x1, y1, x2, y2);
 
-   // Screen redraw will get rid of a rubber line.  
-   have_rubber_line = false;
+	// setcolor (BLACK);
+	// setfontsize (8);
+	// drawtext (100.,770.,"8 Point Text",800.);
+	// setfontsize (12);
+	// drawtext (400.,770.,"12 Point Text",800.);
+	// setfontsize (15);
+	// drawtext (700.,770.,"18 Point Text",800.);
+	// setfontsize (24);
+	// drawtext (300.,830.,"24 Point Text",800.);
+	// setfontsize (32);
+	// drawtext (700.,830.,"32 Point Text",800.);
+	// setfontsize (10);
+
+	// setlinestyle (SOLID);
+	// drawtext (200.,900.,"Thin line (width 1)",800.);
+	// setlinewidth (1);
+	// drawline (100.,920.,300.,920.);
+	// drawtext (500.,900.,"Width 3 Line",800.);
+	// setlinewidth (3);
+	// drawline (400.,920.,600.,920.);
+	// drawtext (800.,900.,"Width 6 Line",800.);
+	// setlinewidth (6);
+	// drawline (700.,920.,900.,920.);
+
+	// setlinewidth (1);
+	// setcolor (GREEN);
+
+
+	// if (have_entered_line) {
+	// 	drawline (x1, y1, x2, y2);
+	// }
+ //   // Screen redraw will get rid of a rubber line.  
+ //   have_rubber_line = false;
 }
 
 
@@ -274,73 +297,15 @@ void delay (void) {
 }
 
 
-void act_on_new_button_func (void (*drawscreen_ptr) (void)) {
-
-   char old_button_name[200], new_button_name[200];
-   printf ("You pressed the new button!\n");
-   setcolor (MAGENTA);
-   setfontsize (12);
-   drawtext (500., 500., "You pressed the new button!", 10000.);
-   sprintf (old_button_name, "%d Clicks", num_new_button_clicks);
-   num_new_button_clicks++;
-   sprintf (new_button_name, "%d Clicks", num_new_button_clicks);
-   change_button_text (old_button_name, new_button_name);
-}
-
-
 void act_on_button_press (float x, float y) {
 
-/* Called whenever event_loop gets a button press in the graphics *
- * area.  Allows the user to do whatever he/she wants with button *
- * clicks.                                                        */
-
-   printf("User clicked a button at coordinates (%f, %f)\n", x, y);
-
-   if (line_entering_demo) {
-      if (rubber_band_on) {
-         rubber_band_on = false;
-         x2 = x;
-         y2 = y;
-         have_entered_line = true;  // both endpoints clicked on --> consider entered.
-
-         // Redraw screen to show the new line.  Could do incrementally, but this is easier.
-         drawscreen ();  
-      }
-      else {
-         rubber_band_on = true;
-         x1 = x;
-         y1 = y;
-         have_entered_line = false;
-         have_rubber_line = false;
-      }
-   }
 
 }
 
 
 
 void act_on_mouse_move (float x, float y) {
-	// function to handle mouse move event, the current mouse position in the current world coordinate
-	// as defined as MAX_X and MAX_Y in init_world is returned
 
-   printf ("Mouse move at (%f,%f)\n", x, y);
-   if (rubber_band_on) {
-      // Go into XOR mode.  Make sure we set the linestyle etc. for xor mode, since it is 
-      // stored in different state than normal mode.
-      set_draw_mode (DRAW_XOR); 
-      setlinestyle (SOLID);
-      setcolor (WHITE);
-      setlinewidth (1);
-
-      if (have_rubber_line) {
-         // Erase old line.  
-         drawline (x1, y1, x2, y2); 
-      }
-      have_rubber_line = true;
-      x2 = x;
-      y2 = y;
-      drawline (x1, y1, x2, y2);  // Draw new line
-   }
 }
 
 

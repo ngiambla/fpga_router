@@ -92,6 +92,10 @@ class Circuit {
 			}
 
 		}
+		Circuit(void) {
+
+		}
+
 
 		Sblck& get_switch(int x, int y);
 		Lblck& get_lblck(int x, int y);
