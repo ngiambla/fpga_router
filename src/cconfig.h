@@ -38,7 +38,7 @@ class CConfig {
 		void reorder_nets();
 
 		void display_config() {
-			int i, j;
+			int i;
 			printf("** *** ***** [config] ***** *** **\n");
 			printf("[size]    [%d]x[%d]\n", size, size);
 			printf("[width]   [%d]\n",width);

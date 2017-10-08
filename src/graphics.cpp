@@ -573,6 +573,7 @@ static void force_setcolor (int cindex)
 	if (disp_type == SCREEN) {
 #ifdef X11
 		XSetForeground (display, current_gc, colors[cindex]);
+
 #else /* Win32 */
 		if(!DeleteObject(hGraphicsPen))
 			DELETE_ERROR();
@@ -601,6 +602,11 @@ void setcolor (int cindex)
 		force_setcolor (cindex);
 }
 
+void set_rgb_color (unsigned char red, unsigned char green, unsigned char blue) {
+	int color=(red<<16) + (green<<8) +(blue);
+	//int color=(((int)(red*256)%256)<<16 + ((int)(green*256)%256)<<8+ ((int)(blue*256)%256));
+	XSetForeground(display, current_gc, color);
+}
 
 /* Sets the current linestyle to linestyle in the graphics context.
  * Note SOLID is 0 and DASHED is 1 for linestyle. 

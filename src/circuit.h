@@ -28,7 +28,7 @@ class Circuit {
 
 	public:
 		Circuit(int width, int size, char type){
-			int i, j, q;
+			int i, j;
 
 			this->width=width;
 			this->size=size;

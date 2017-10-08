@@ -33,7 +33,7 @@ void Router::traceback(Circuit &c, int x, int y, int pin, int side) {
 			exit(-1);
 			break;
 		} else {
-			Path p(cur_pin, cur_side, blck);
+			Path p(cur_pin, next_side, blck);
 			cur_path_p.push_back(p);
 			blck.display_id();
 		}
@@ -64,24 +64,20 @@ void Router::traceback(Circuit &c, int x, int y, int pin, int side) {
 		switch(next_side) {
 			case NORTH:
 				cur_x=cur_x-1;
-				cur_y=cur_y;
 				blck.set_pin(next_side, cur_side, cur_pin, UNAVAIL);
 				cur_side=SOUTH;
 				break;
 			case EAST:
-				cur_x=cur_x;
 				cur_y=cur_y+1; 
 				blck.set_pin(next_side, cur_side, cur_pin, UNAVAIL);
 				cur_side=WEST;
 				break;
 			case SOUTH:
 				cur_x=cur_x+1;
-				cur_y=cur_y;
 				blck.set_pin(next_side, cur_side, cur_pin, UNAVAIL);
 				cur_side=NORTH;
 				break;
 			case WEST:
-				cur_x=cur_x;
 				cur_y=cur_y-1;
 				blck.set_pin(next_side, cur_side, cur_pin, UNAVAIL);
 				cur_side=EAST;
@@ -127,7 +123,7 @@ int Router::check_for_target(Circuit &c, int x, int y, int came_from, int HEAD) 
 					if(HEAD==0){
 						p_trg.set_pin(j, came_from, i, UNAVAIL);
 						target_hit=1;
-						Path p(i, came_from, p_trg);
+						Path p(i, j, p_trg);
 						cur_path.push_back(p);
 						all_paths.push_back(cur_path);
 						// cur_path.push_back(p_trg);
@@ -163,8 +159,7 @@ void Router::add_to_queue(vector<int> &_x, vector<int> &_y, vector<int> &_g, int
 
 void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, int heading2) {
 
-	int HEAD=0, i=0, j=0, cur_x, cur_y, cur_heading;
-	char placeholder;
+	int HEAD=0, i=0, cur_x, cur_y, cur_heading;
 	int eflag=0, nflag=0, sflag=0, wflag=0;
 
 	vector<int> sblcks_x;
@@ -289,8 +284,7 @@ void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, in
 
 void Router::search_p(Circuit &c, int x1, int y1, int heading1) {
 
-	int i=0, j=0, cur_x, cur_y, cur_heading;
-	char placeholder;
+	int i=0, cur_x, cur_y, cur_heading;
 
 	int eflag=0, nflag=0, sflag=0, wflag=0;
 

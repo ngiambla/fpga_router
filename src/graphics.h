@@ -136,6 +136,9 @@ void clearscreen (void);
 /* Set the current draw colour to the supplied colour index from color_types */
 void setcolor (int cindex);
 
+/* Set the current draw colour to the supplied rgb value */
+void set_rgb_color (unsigned char red, unsigned char green, unsigned char blue);
+
 /* Sets the line style to the specified line_style */
 void setlinestyle (int linestyle); 
 

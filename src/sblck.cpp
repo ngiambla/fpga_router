@@ -101,7 +101,6 @@ int Sblck::wilton(int dest, int src, int i) {
 }
 
 void Sblck::set_pin(int dest, int src, int pin, int weight) {
-	int width = w_per_pin;
 	int i;
 	if(sw_type=='f' || src == dest) {
 		set_pin(dest, pin, weight);
@@ -127,7 +126,6 @@ int Sblck::get_pin(int side, int pin) {
 }
 
 int Sblck::get_pin(int dest, int src, int pin) {
-	int width = w_per_pin;
 	int i;
 	if(sw_type=='f') {
 		return get_pin(dest, pin);
@@ -138,7 +136,7 @@ int Sblck::get_pin(int dest, int src, int pin) {
 }
 
 void Sblck::display_block() {
-	int i, j;
+	int i;
 	printf("[ N ]  [ E ]  [ S ]  [ W ]\n");
 	for(i=0; i< w_per_pin; ++i) {
 		if(n_conn==1) {
