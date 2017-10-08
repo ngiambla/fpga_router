@@ -139,6 +139,12 @@ void setcolor (int cindex);
 /* Set the current draw colour to the supplied rgb value */
 void set_rgb_color (unsigned char red, unsigned char green, unsigned char blue);
 
+/* Converts the rgb 3byte rep into an integer type*/
+int get_color (unsigned char red, unsigned char green, unsigned char blue);
+
+/* Set the current draw color to the supplied integer value */
+void set_color(int color);
+
 /* Sets the line style to the specified line_style */
 void setlinestyle (int linestyle); 
 

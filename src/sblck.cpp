@@ -135,6 +135,14 @@ int Sblck::get_pin(int dest, int src, int pin) {
 	}
 }
 
+int Sblck::get_pin_pos(int dest, int src, int pin) {
+	if(sw_type=='f') {
+		return pin;
+	} else {
+		return wilton(dest, src, pin);
+	}
+}
+
 void Sblck::display_block() {
 	int i;
 	printf("[ N ]  [ E ]  [ S ]  [ W ]\n");

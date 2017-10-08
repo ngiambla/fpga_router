@@ -3,6 +3,7 @@
 #include "router.h"
 #include "cconfig.h"
 #include <fstream>
+#include <cmath>
 #include "graphics.h"
 
 const char * usage="Usage ./cirutils -file filename -switch [f | w] -isParallel [T | F]\n";
@@ -12,6 +13,7 @@ void layout_circuit(Circuit c);
 void act_on_button_press (float x, float y);
 void act_on_mouse_move (float x, float y);
 void act_on_key_press (char c);
+vector<int> generate_unique_colors(int how_many);
 
 static Circuit circuit;
 Paths_t paths;
@@ -128,7 +130,8 @@ int main(int argc, char *argv[]) {
 
 
 void drawscreen (void) {
-	int i, j, k, g=0; 
+	int i, j, k, g=0;
+	int cur_path=0; 
 	int blck_sz=100;
 	int grid_size=circuit.get_size();
 	int width_size = circuit.get_width();
@@ -136,6 +139,8 @@ void drawscreen (void) {
 	int offset=inc_wire;
 
 	char buf[10]="";
+
+	vector<int> colors;
 
 	set_draw_mode (DRAW_NORMAL);
 	clearscreen();
@@ -204,46 +209,59 @@ void drawscreen (void) {
 			}
 		}
 	}
-
+	colors=generate_unique_colors(paths.size());
 	for(Path_t path : paths) {
-		set_rgb_color(200, g, 50);
+		set_color(colors[cur_path]);
 		for(Path ele : path) {
 			Sblck s=ele.get_sblck();
-			//s.display_id();
 			switch(ele.get_side()) {
 				case NORTH:
 					k=ele.get_pin()*2;
 					j=s.get_x()*2;
 					i=s.get_y()*2-1;
-					drawline (10+offset+j*blck_sz+k*inc_wire,10+i*blck_sz,10+offset+j*blck_sz+k*inc_wire,110+i*blck_sz);
+					//drawline (10+offset+j*blck_sz+k*inc_wire,10+i*blck_sz,10+offset+j*blck_sz+k*inc_wire,110+i*blck_sz);
 					break;
 				case EAST:
 					k=ele.get_pin()*2;
-					j=s.get_x()*2;
-					i=s.get_y()*2;
-					drawline (10+j*blck_sz,10+offset+i*blck_sz+k*inc_wire,110+j*blck_sz,10+offset+i*blck_sz+k*inc_wire);
+					j=s.get_x()*2-1;
+					i=s.get_y()*2+2;
+					//drawline (10+j*blck_sz,10+offset+i*blck_sz+k*inc_wire,110+j*blck_sz,10+offset+i*blck_sz+k*inc_wire);
 					break;
 				case SOUTH:
 					k=ele.get_pin()*2;
 					j=s.get_x()*2;
-					i=s.get_y()*2;
-					drawline (10+offset+j*blck_sz+k*inc_wire,10+i*blck_sz,10+offset+j*blck_sz+k*inc_wire,110+i*blck_sz);
+					i=s.get_y()*2+1;
+					//drawline (10+offset+j*blck_sz+k*inc_wire,10+i*blck_sz,10+offset+j*blck_sz+k*inc_wire,110+i*blck_sz);
 					break;
 				case WEST:
 					k=ele.get_pin()*2;
-					j=s.get_x()*2-1;
-					i=s.get_y()*2;
-					drawline (10+j*blck_sz,10+offset+i*blck_sz+k*inc_wire,110+j*blck_sz,10+offset+i*blck_sz+k*inc_wire);
+					j=s.get_x()*2-3;
+					i=s.get_y()*2+2;
+					//drawline (10+j*blck_sz,10+offset+i*blck_sz+k*inc_wire,110+j*blck_sz,10+offset+i*blck_sz+k*inc_wire);
 					break;
 			}
 		}
-		g=g+10;
+		cur_path++;
 	}
 
 
 
 }
 
+
+vector<int> generate_unique_colors(int how_many) {
+	int i=0;
+	float frequency=0.3;
+	unsigned char red, green, blue;
+	vector<int> colors;
+	for (i = 0; i < how_many; ++i) {
+		red   = (unsigned char) (sin(frequency*i + 0) * 127 + 128);
+		green = (unsigned char) (sin(frequency*i + 2) * 127 + 128);
+		blue  = (unsigned char) (sin(frequency*i + 4) * 127 + 128);
+		colors.push_back(get_color(red, green, blue));
+	}
+	return colors;
+}
 
 void act_on_button_press (float x, float y) {
 }

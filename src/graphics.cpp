@@ -604,9 +604,17 @@ void setcolor (int cindex)
 
 void set_rgb_color (unsigned char red, unsigned char green, unsigned char blue) {
 	int color=(red<<16) + (green<<8) +(blue);
-	//int color=(((int)(red*256)%256)<<16 + ((int)(green*256)%256)<<8+ ((int)(blue*256)%256));
 	XSetForeground(display, current_gc, color);
 }
+
+void set_color(int color) {
+	XSetForeground(display, current_gc, color);	
+}
+
+int get_color (unsigned char red, unsigned char green, unsigned char blue) {
+	return (red<<16) + (green<<8) +(blue);
+}
+
 
 /* Sets the current linestyle to linestyle in the graphics context.
  * Note SOLID is 0 and DASHED is 1 for linestyle. 

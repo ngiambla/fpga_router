@@ -101,6 +101,7 @@ class Circuit {
 		Lblck& get_lblck(int x, int y);
 		int get_width();
 		int get_size();
+		char get_type();
 		void reset();
 		void compute_stats();
 

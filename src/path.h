@@ -16,7 +16,6 @@ class Path {
 			this->pin=pin;
 			this->side=side;
 			blck.push_back(sblck);
-			printf("[PATH] [%d][%d]\n", pin, side);
 		}
 
 		Sblck& get_sblck() {

@@ -24,6 +24,10 @@ int Circuit::get_size() {
 	return size;
 }
 
+char Circuit::get_type() {
+	return type;
+}
+
 void Circuit::reset() {
 	int i, j, k, side;
 	for(i=0 ;i<size+1; ++i) {

@@ -98,8 +98,12 @@ class Sblck {
 		void set_pin(int side, int pin, int weight);
 		void set_pin(int dest, int src, int pin, int weight);
 		int is_side_avail(int side);
+		
 		int get_pin(int side, int pin);
 		int get_pin(int dest, int src, int pin);
+
+		int get_pin_pos(int dest, int src, int pin);
+
 		int set_switch(int dest, int src, int pin);
 		int get_x();
 		int get_y();
