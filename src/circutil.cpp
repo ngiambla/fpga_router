@@ -59,7 +59,7 @@ CConfig init_util(char * filename) {
 		exit(-1);
 	}
     
-    config.display_config();
+    //config.display_config();
 	return config;
 }
 
@@ -71,7 +71,8 @@ Circuit gen_circuit(CConfig config, char type) {
 
 int main(int argc, char *argv[]) {
 	CConfig config;
-
+	int reroute_enabled=1;
+	int reroute_tries=0;
 	char filename[20]="circuits/";
 	char buf[120]="";
 
@@ -89,15 +90,24 @@ int main(int argc, char *argv[]) {
 		try { 
 			printf("\n\n############### [fpga_router] ###############\n\n");
 			printf("-- init.\n\n");
-			config=init_util(filename);
-			circuit=gen_circuit(config, argv[4][0]);
-			Router router(config.get_netlist(), argv[6][0]);
-			paths=router.begin_routing(circuit);
+			while(reroute_enabled==1 && reroute_tries<10){
+				config=init_util(filename);
+				config.reorder_nets();
+				config.display_config();
 
-			if(paths.size() == 0) {
-				printf("[ERROR] Fatal Error. Netlist unroutable.\n");
-				exit(-1);
+				circuit=gen_circuit(config, argv[4][0]);
+				Router router(config.get_netlist(), argv[6][0]);
+				paths=router.begin_routing(circuit);
+
+				if(router.was_routable()==0) {
+					reroute_enabled=0;
+				}
+				++reroute_tries;
 			}
+			// if(paths.size() == 0) {
+			// 	printf("[ERROR] Fatal Error. Netlist unroutable.\n");
+			// 	exit(-1);
+			// }
 
 			printf("-- Going to Display.\n");
 			init_graphics("#-##-###-#### [FPGA Router] ####-###-##-#", WHITE);
@@ -135,17 +145,49 @@ void drawscreen (void) {
 	int blck_sz=100;
 	int grid_size=circuit.get_size();
 	int width_size = circuit.get_width();
-	float inc_wire=blck_sz/(2*width_size);
+	float inc_wire=(float)blck_sz/(2*width_size);
 	int offset=inc_wire;
+	int lblck_w_offset=25;
 
 	char buf[10]="";
 
 	vector<int> colors;
 
 	set_draw_mode (DRAW_NORMAL);
+	
 	clearscreen();
 	setlinewidth (2);
+	//Draw Logic Blocks
+	for(i=0; i<grid_size*2; ++i) {
+		for(j=0; j<grid_size*2; ++j) {
+			if(i%2==0) {
+				if(j%2==0) {
+					setcolor(LIGHTGREY);
+					fillrect(110+j*blck_sz, 110+i*blck_sz, 210+j*blck_sz, 210+i*blck_sz);
+
+					setcolor(BLACK);
+					//north
+					drawline(110+j*blck_sz+lblck_w_offset, 110+(i-1)*(blck_sz)+offset, 110+j*blck_sz+lblck_w_offset, 110+i*(blck_sz));
+	
+					//east
+					drawline(110+(j+1)*blck_sz, 110+i*(blck_sz)+lblck_w_offset, 110+(j+2)*blck_sz-offset, 110+i*(blck_sz)+lblck_w_offset);
+
+					//south
+					drawline(110+(j+1)*blck_sz-lblck_w_offset, 110+(i+1)*(blck_sz), 110+(j+1)*blck_sz-lblck_w_offset, 110+(i+2)*(blck_sz)-offset);
+
+					//west
+					drawline(110+(j-1)*blck_sz+offset, 110+(i+1)*(blck_sz)-lblck_w_offset, 110+(j)*blck_sz, 110+(i+1)*(blck_sz)-lblck_w_offset);
+
+					setfontsize (8);
+					sprintf(buf,"(%2d,%2d)", i/2,j/2);
+					setcolor(BLACK);
+					drawtext (110+j*blck_sz+blck_sz*0.5,110+i*blck_sz+blck_sz*0.5,buf,800);
+				}
+			}
+		}
+	}
 	//Draw Switch Blocks
+
 	for(i=0; i< grid_size*2+1; ++i) {
 		for(j=0; j<grid_size*2+1; ++j) {
 			if(i%2==0) {
@@ -165,7 +207,6 @@ void drawscreen (void) {
 
 								if(sblck.get_pin(EAST, k/2)== UNAVAIL){
 									setcolor(GREEN);
-									//set_rgb_color(100,100,21);
 								} else {
 									setcolor(BLACK);
 								}
@@ -194,21 +235,6 @@ void drawscreen (void) {
 		}
 	}
 
-	//Draw Logic Blocks
-	for(i=0; i<grid_size*2; ++i) {
-		for(j=0; j<grid_size*2; ++j) {
-			if(i%2==0) {
-				if(j%2==0) {
-					setcolor(LIGHTGREY);
-					fillrect(110+j*blck_sz, 110+i*blck_sz, 210+j*blck_sz, 210+i*blck_sz);
-					setfontsize (8);
-					sprintf(buf,"(%2d,%2d)", i/2,j/2);
-					setcolor(BLACK);
-					drawtext (110+j*blck_sz+blck_sz*0.5,110+i*blck_sz+blck_sz*0.5,buf,800);
-				}
-			}
-		}
-	}
 	colors=generate_unique_colors(paths.size());
 	for(Path_t path : paths) {
 		set_color(colors[cur_path]);
@@ -219,25 +245,21 @@ void drawscreen (void) {
 					k=ele.get_pin()*2;
 					j=s.get_x()*2;
 					i=s.get_y()*2-1;
-					//drawline (10+offset+j*blck_sz+k*inc_wire,10+i*blck_sz,10+offset+j*blck_sz+k*inc_wire,110+i*blck_sz);
 					break;
 				case EAST:
 					k=ele.get_pin()*2;
 					j=s.get_x()*2-1;
 					i=s.get_y()*2+2;
-					//drawline (10+j*blck_sz,10+offset+i*blck_sz+k*inc_wire,110+j*blck_sz,10+offset+i*blck_sz+k*inc_wire);
 					break;
 				case SOUTH:
 					k=ele.get_pin()*2;
 					j=s.get_x()*2;
 					i=s.get_y()*2+1;
-					//drawline (10+offset+j*blck_sz+k*inc_wire,10+i*blck_sz,10+offset+j*blck_sz+k*inc_wire,110+i*blck_sz);
 					break;
 				case WEST:
 					k=ele.get_pin()*2;
 					j=s.get_x()*2-3;
 					i=s.get_y()*2+2;
-					//drawline (10+j*blck_sz,10+offset+i*blck_sz+k*inc_wire,110+j*blck_sz,10+offset+i*blck_sz+k*inc_wire);
 					break;
 			}
 		}

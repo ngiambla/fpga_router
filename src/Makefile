@@ -43,7 +43,7 @@ else
 endif
 
 $(EXE):
-	g++ $(FLAGS) -std=c++11 -o circutil circutil.cpp circuit.cpp lblck.cpp sblck.cpp router.cpp graphics.cpp -lpthread $(GRAPHICS_LIBS)
+	g++ $(FLAGS) -std=c++11 -o circutil circutil.cpp circuit.cpp lblck.cpp sblck.cpp router.cpp graphics.cpp cconfig.cpp -lpthread $(GRAPHICS_LIBS)
 
 # $(EXE): graphics.o circutil.o circuit.o lblck.o sblck.o router.o
 # 	g++ $(FLAGS) graphics.o circutil.o circuit.o lblck.o sblck.o router.o $(GRAPHICS_LIBS) -lpthread -o $(EXE)

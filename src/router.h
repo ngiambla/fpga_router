@@ -7,9 +7,7 @@
 #include "path.h"
 
 typedef vector<Sblck> Spath;
-//typedef vector<Spath> Spaths;
 
-//Moving to Paths.
 typedef vector<Path> Path_t;
 typedef vector<Path_t> Paths_t;
 
@@ -46,6 +44,7 @@ class Router {
 		}
 		
 		Paths_t begin_routing(Circuit &c);
+		int was_routable();
 };
 
 

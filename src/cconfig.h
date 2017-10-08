@@ -37,16 +37,7 @@ class CConfig {
 
 		void reorder_nets();
 
-		void display_config() {
-			int i;
-			printf("** *** ***** [config] ***** *** **\n");
-			printf("[size]    [%d]x[%d]\n", size, size);
-			printf("[width]   [%d]\n",width);
-			for(i=0; i<netlist.size(); ++ i){
-				printf("[INFO] Net[%d] -- LBlck(%d,%d) Pin[%d] <-> LBlck(%d,%d) Pin[%d]\n", i, netlist[i][0], netlist[i][1], netlist[i][2], netlist[i][3], netlist[i][4], netlist[i][5]);
-			}
-			printf("-- End Of Config.\n");
-		}
+		void display_config();
 };
 
 

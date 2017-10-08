@@ -34,8 +34,6 @@ void Router::traceback(Circuit &c, int x, int y, int pin, int side) {
 		} else {
 			Path p(cur_pin, cur_side, blck);
 			cur_path_p.push_back(p);
-			blck.display_id();
-			blck.display_block();
 		}
 
 		printf("[INFO] @Sblock[%d][%d] **\n    Heading Back <<<<-- from [%d]\n", cur_x, cur_y, cur_side);
@@ -65,28 +63,24 @@ void Router::traceback(Circuit &c, int x, int y, int pin, int side) {
 	
 		switch(next_side) {
 			case NORTH:
-				cout << "[NORTH]\n";
 				cur_x=cur_x-1;
 				blck.set_pin(next_side, cur_side, cur_pin, UNAVAIL);
 				cur_pin=blck.get_pin_pos(next_side, cur_side, cur_pin);
 				cur_side=SOUTH;
 				break;
 			case EAST:
-				cout << "[EAST]\n";
 				cur_y=cur_y+1; 
 				blck.set_pin(next_side, cur_side, cur_pin, UNAVAIL);
 				cur_pin=blck.get_pin_pos(next_side, cur_side, cur_pin);
 				cur_side=WEST;
 				break;
 			case SOUTH:
-				cout << "[SOUTH]\n";
 				cur_x=cur_x+1;
 				blck.set_pin(next_side, cur_side, cur_pin, UNAVAIL);
 				cur_pin=blck.get_pin_pos(next_side, cur_side, cur_pin);
 				cur_side=NORTH;
 				break;
 			case WEST:
-				cout << "[WEST]\n";
 				cur_y=cur_y-1;
 				blck.set_pin(next_side, cur_side, cur_pin, UNAVAIL);
 				cur_pin=blck.get_pin_pos(next_side, cur_side, cur_pin);
@@ -137,7 +131,6 @@ int Router::check_for_target(Circuit &c, int x, int y, int came_from, int HEAD) 
 	vector<Path> cur_path;
 
 	Sblck p_trg=c.get_switch(x,y);
-	p_trg.display_block();
 
 	switch(came_from) {
 		case NORTH:
@@ -217,7 +210,7 @@ void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, in
 		cur_y=sblcks_y[HEAD];
 		cur_heading=going[HEAD];
 
-		printf("[router] -- inspecting [%d][%d], heading [%d]\n", cur_x, cur_y, cur_heading);
+		//printf("[router] -- inspecting [%d][%d], heading [%d]\n", cur_x, cur_y, cur_heading);
 
 		if(check_for_target(c, cur_x, cur_y, cur_heading, HEAD) == 1) {
 			printf("[SEARCH] --Target Acquired.\n");
@@ -402,8 +395,8 @@ Paths_t Router::begin_routing(Circuit &c) {
 
 		if(target_hit!=1) {
 			printf("No Target Found.\n");
-			if(is_parallel != 'T')
-				exit(-1);
+			target_hit=-1;
+			return all_paths;
 		} else {
 			target_hit=0;
 		}
@@ -412,4 +405,8 @@ Paths_t Router::begin_routing(Circuit &c) {
 	}
 	c.compute_stats();
 	return all_paths;
+}
+
+int Router::was_routable() {
+	return target_hit;
 }
