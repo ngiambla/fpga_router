@@ -105,6 +105,7 @@ void Router::traceback(Circuit &c, int x, int y, int pin, int side) {
 void Router::begin_traceback(Circuit &c, int x, int y, int came_from) {
 	int i, j, side;
 	Sblck t_src=c.get_switch(x,y);
+
 	switch(came_from) {
 		case NORTH:
 			side=SOUTH;
@@ -120,15 +121,15 @@ void Router::begin_traceback(Circuit &c, int x, int y, int came_from) {
 			break;
 	}
 
-	if(src_hit==0){
+
+	if(traceback_started==0) {
+		traceback_started=1;
 		for(i=0;i<c.get_size();++i){
 			for(j=0;j<4;++j) {
 				if(t_src.is_side_avail(j)==1) {
 					if(t_src.get_pin(j, side, i) == USED) {
 						t_src.set_pin(j, side, i, UNAVAIL);
-						
 						traceback(c, x, y, i, j);
-						
 						i=MAX_WEIGHT;
 						j=MAX_WEIGHT;
 						break;
@@ -136,6 +137,8 @@ void Router::begin_traceback(Circuit &c, int x, int y, int came_from) {
 				}
 			}	
 		}
+	} else {
+		return;
 	}
 }
 
@@ -178,6 +181,8 @@ int Router::check_for_target(Circuit &c, int x, int y, int came_from, int HEAD) 
 							return 1;
 						}
 					}
+				} if(target_hit==1 || traceback_started==1 || src_hit ==1) {
+					return -1;
 				}
 			}
 		}
@@ -190,7 +195,6 @@ int Router::check_for_target(Circuit &c, int x, int y, int came_from, int HEAD) 
 void Router::add_to_queue(vector<int> &_x, vector<int> &_y, vector<int> &_g, int x1, int y1, int dir) {
 	int i=0, append=0;
 	
-	search_mut.lock();	
 	for(i=0; i<_x.size();++i) {
 		if(_x[i]== x1 && _y[i]==y1) {
 			append=1;
@@ -202,7 +206,6 @@ void Router::add_to_queue(vector<int> &_x, vector<int> &_y, vector<int> &_g, int
 		_y.push_back(y1);
 		_g.push_back(dir);
 	}
-	search_mut.unlock();
 }
 
 void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, int heading2) {
@@ -349,11 +352,13 @@ void Router::search_p(Circuit &c, int x1, int y1, int heading1) {
 		ans=check_for_target(c, cur_x, cur_y, cur_heading, HEAD);
 		if(ans == 1) {
 			if(HEAD != 0) {
+				trace_mut.lock();
 				begin_traceback(c, cur_x, cur_y, cur_heading);
+				trace_mut.unlock();
 			}
-			break;
-		} else if(ans == -1 || target_hit==1 || src_hit ==1) {
-			break;
+			return;
+		} else if(ans == -1 || target_hit==1 || src_hit ==1 || traceback_started ==1) {
+			return;
 		}
 
 		Sblck s_t = c.get_switch(cur_x, cur_y);
@@ -524,6 +529,7 @@ Paths_t Router::begin_routing(Circuit &c) {
 		} else {
 			target_hit=0;
 			src_hit=0;
+			traceback_started=0;
 		}
 		c.reset();
 		++cur_net;

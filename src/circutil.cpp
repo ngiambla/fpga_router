@@ -6,7 +6,7 @@
 #include <cmath>
 #include "graphics.h"
 
-const char * usage="Usage ./cirutils -file filename -switch [f | w] -isParallel [T | F]\n";
+const char * usage="Usage ./cirutils -file filename -switch [f | w] -isParallel [T | F] -t [y | n]\n";
 
 void drawscreen (void);
 void layout_circuit(Circuit c);
@@ -16,7 +16,8 @@ void act_on_key_press (char c);
 vector<int> generate_unique_colors(int how_many);
 
 static Circuit circuit;
-Paths_t paths;
+static CConfig config;
+static Paths_t paths;
 
 CConfig init_util(char * filename, int width_reduction) {
 	CConfig config;
@@ -70,13 +71,12 @@ Circuit gen_circuit(CConfig config, char type) {
 
 
 int main(int argc, char *argv[]) {
-	CConfig config;
 	int reroute_enabled=1;
 	int reroute_tries=0;
 	char filename[20]="circuits/";
 	char buf[120]="";
 
-	if(argc < 7 || argc > 7) {
+	if(argc < 9 || argc > 9) {
 		printf("%s", usage);
 		exit(-1);
 	} else if(argv[4][0] != 'w' && argv[4][0] != 'f') {
@@ -85,6 +85,9 @@ int main(int argc, char *argv[]) {
 	} else if(argv[6][0] != 'T' && argv[6][0] != 'F') {
 		printf("%s", usage);
 		exit(-3);
+	} else if(argv[8][0] != 'n' && argv[8][0] != 'y') {
+		printf("%s", usage);
+		exit(-4);
 	} else {
 		strcat(filename, argv[2]);
 		try { 
@@ -99,36 +102,39 @@ int main(int argc, char *argv[]) {
 				Router router(config.get_netlist(), argv[6][0]);
 				paths=router.begin_routing(circuit);
 
-				if(router.was_routable()==0) {
-					++reroute_tries;
-				} else {
+				if(argv[8][0]=='n'){
 					reroute_enabled=0;
+				} else {
+					reroute_enabled=1;
+					if(router.was_routable()==0) {
+						++reroute_tries;
+					} else {
+						reroute_enabled=0;
+					}
 				}
 			}
-			// if(paths.size() == 0) {
-			// 	printf("[ERROR] Fatal Error. Netlist unroutable.\n");
-			// 	exit(-1);
-			// }
 
-			// printf("-- Going to Display.\n");
-			// init_graphics("#-##-###-#### [FPGA Router] ####-###-##-#", WHITE);
+			if(argv[8][0]=='n') {
+				printf("-- Going to Display.\n");
+				init_graphics("#-##-###-#### [FPGA Router] ####-###-##-#", WHITE);
 
-			// sprintf(buf, "-- Circuit [%s] Routed.", argv[2]);
+				sprintf(buf, "-- Circuit [%s] Routed.", argv[2]);
 
-			// update_message(buf);
+				update_message(buf);
 
-   // 			init_world (0, 0, 1000, 1000);			
-			// clearscreen();
+	   			init_world (0, 0, 1000, 1000);			
+				clearscreen();
 
 
-			// set_keypress_input (false);
-			// set_mouse_move_input (false);
+				set_keypress_input (false);
+				set_mouse_move_input (false);
 
-			// drawscreen();
-			// event_loop(act_on_button_press, act_on_mouse_move, act_on_key_press, drawscreen);
+				drawscreen();
+				event_loop(act_on_button_press, act_on_mouse_move, act_on_key_press, drawscreen);
 
-			// close_graphics ();
-			// printf ("[Router] Completed. Exited\n>\n>\n");
+				close_graphics ();
+				printf ("[Router] Completed. Exited\n>\n>\n");
+			}
 
 
 		} catch (const char* msg) { 

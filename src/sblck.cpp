@@ -1,7 +1,6 @@
 #include "cirdefs.h"
 #include "track.h"
 #include "sblck.h"
-#include <thread>
 
 
 void Sblck::connect_track(Track &trck, int side) {

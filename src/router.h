@@ -24,6 +24,7 @@ class Router {
 		vector<int> going_p;
 		int src_hit;
 		int target_hit;
+		int traceback_started;
 		
 		char is_parallel;
 
@@ -43,6 +44,7 @@ class Router {
 			this->is_parallel = is_parallel;
 			this->target_hit=0;
 			this->src_hit=0;
+			this->traceback_started=0;
 		}
 		
 		Paths_t begin_routing(Circuit &c);
