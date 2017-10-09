@@ -3,6 +3,7 @@
 
 #include "cirdefs.h"
 #include "track.h"
+#include <thread>
 
 class Sblck {
 	private:
@@ -33,6 +34,8 @@ class Sblck {
 
 		int x;	// to store coords for plot.
 		int y;	//
+
+		static mutex blck_access;
 
 		vector<int>*& get_side(int dir);
 		int wilton(int dest, int src, int pin);
@@ -91,6 +94,7 @@ class Sblck {
 
 			}
 		}
+
 
 		void display_block();
 		void display_id();

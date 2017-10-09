@@ -101,13 +101,17 @@ int Sblck::wilton(int dest, int src, int i) {
 }
 
 void Sblck::set_pin(int dest, int src, int pin, int weight) {
+	mutex blck_access;
 	int i;
+	blck_access.lock();
 	if(sw_type=='f' || src == dest) {
 		set_pin(dest, pin, weight);
 	} else {
 		i=wilton(dest, src, pin);
 		set_pin(dest, i, weight);
 	}
+	blck_access.unlock();
+
 }
 
 int Sblck::get_pin(int side, int pin) {
@@ -202,7 +206,6 @@ void Sblck::display_id() {
 int Sblck::set_switch(int dest, int src, int pin) {
 	int i;
 	vector<int> * src_v, * dest_v;
-
 	if(sw_type == 'f') {
 		if(is_side_avail(dest) == 1) {
 			src_v=get_side(src);
@@ -220,5 +223,5 @@ int Sblck::set_switch(int dest, int src, int pin) {
 					(*dest_v)[i]=(*src_v)[pin]+1;
 			}
 		}
-	}	
+	}
 }
