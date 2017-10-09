@@ -156,6 +156,8 @@ void drawscreen (void) {
 	int offset=inc_wire;
 	int lblck_w_offset=25;
 
+	int start_path=0;
+
 	char buf[10]="";
 
 	vector<int> colors;
@@ -193,8 +195,16 @@ void drawscreen (void) {
 			}
 		}
 	}
-	//Draw Switch Blocks
 
+	// vector< vector<int> > nets=config.get_netlist();
+	// for(vector<int> net : nets) {
+	// 	i=net[0]*2;
+	// 	j=net[1]*2;
+
+
+	// }
+
+	//Draw Switch Blocks
 	for(i=0; i< grid_size*2+1; ++i) {
 		for(j=0; j<grid_size*2+1; ++j) {
 			if(i%2==0) {
@@ -213,7 +223,7 @@ void drawscreen (void) {
 							if(k%2==0){
 
 								if(sblck.get_pin(EAST, k/2)== UNAVAIL){
-									setcolor(GREEN);
+									//setcolor(GREEN);
 								} else {
 									setcolor(BLACK);
 								}
@@ -229,7 +239,7 @@ void drawscreen (void) {
 						for(k=0;k<width_size*2; ++k) {
 							if(k%2==0){
 								if(sblck.get_pin(SOUTH, k/2)==UNAVAIL){
-									setcolor(GREEN);
+									//setcolor(GREEN);
 								} else {
 									setcolor(BLACK);
 								}
@@ -245,31 +255,76 @@ void drawscreen (void) {
 	colors=generate_unique_colors(paths.size());
 	for(Path_t path : paths) {
 		set_color(colors[cur_path]);
+
+		start_path=0;
 		for(Path ele : path) {
+			ele.display_path();
 			Sblck s=ele.get_sblck();
 			switch(ele.get_side()) {
 				case NORTH:
 					k=ele.get_pin()*2;
-					j=s.get_x()*2;
-					i=s.get_y()*2-1;
+					i=s.get_x()*2-1;
+					j=s.get_y()*2;
+					drawline (10+offset+j*blck_sz+k*inc_wire,10+i*blck_sz,10+offset+j*blck_sz+k*inc_wire,110+i*blck_sz);
+					if(start_path==0) {
+						vector< vector<int> > nets=config.get_netlist();
+						i=nets[cur_path][3]*2;
+						j=nets[cur_path][4]*2;
+						k=nets[cur_path][5]-1;
+						if(k == EAST) {	
+							drawline(110+(j+1)*blck_sz, 110+i*(blck_sz)+lblck_w_offset, 110+(j+2)*blck_sz-offset-offset*ele.get_pin()*2, 110+i*(blck_sz)+lblck_w_offset);
+						} else {
+							drawline(110+(j-1)*blck_sz+offset*ele.get_pin()*2, 110+(i+1)*(blck_sz)-lblck_w_offset, 110+(j)*blck_sz, 110+(i+1)*(blck_sz)-lblck_w_offset);
+						}
+					}
+					if(start_path==path.size()-1) {
+						vector< vector<int> > nets=config.get_netlist();
+						i=nets[cur_path][0];
+						j=nets[cur_path][1];
+						k=nets[cur_path][2]-1;
+					}
 					break;
 				case EAST:
 					k=ele.get_pin()*2;
-					j=s.get_x()*2-1;
-					i=s.get_y()*2+2;
+					i=s.get_x()*2;
+					j=s.get_y()*2+1;
+					drawline (10+j*blck_sz,10+offset+i*blck_sz+k*inc_wire,110+j*blck_sz,10+offset+i*blck_sz+k*inc_wire);
+					if(start_path==0) {
+
+					}
+					if(start_path==path.size()-1) {
+
+					}
 					break;
+
 				case SOUTH:
 					k=ele.get_pin()*2;
-					j=s.get_x()*2;
-					i=s.get_y()*2+1;
+					i=s.get_x()*2+1;
+					j=s.get_y()*2;
+					drawline (10+offset+j*blck_sz+k*inc_wire,10+i*blck_sz,10+offset+j*blck_sz+k*inc_wire,110+i*blck_sz);
+					if(start_path==0) {
+
+					}
+					if(start_path==path.size()-1) {
+
+					}
 					break;
 				case WEST:
 					k=ele.get_pin()*2;
-					j=s.get_x()*2-3;
-					i=s.get_y()*2+2;
+					i=s.get_x()*2;
+					j=s.get_y()*2-1;
+					drawline (10+j*blck_sz,10+offset+i*blck_sz+k*inc_wire,110+j*blck_sz,10+offset+i*blck_sz+k*inc_wire);
+					if(start_path==0) {
+
+					}
+					if(start_path==path.size()-1) {
+
+					}
 					break;
 			}
+			++start_path;
 		}
+		printf("\n\n");
 		cur_path++;
 	}
 

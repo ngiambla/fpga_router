@@ -30,6 +30,10 @@ class Path {
 			return side;
 		}
 
+		void display_path() {
+			printf("SBLCK[%d,%d] SIDE[%d] PIN[%d]\n", blck[0].get_x(), blck[0].get_y(), side, pin);
+		}
+
 };
 
 #endif

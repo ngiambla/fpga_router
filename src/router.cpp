@@ -4,7 +4,7 @@
 #include <mutex>
 #include <chrono>
 
-mutex search_mut, check_mut, trace_mut;
+mutex trace_mut;
 
 int add_block_to_path(Spath &cur_path, Sblck sblck) {
 	for(Sblck s : cur_path) {
@@ -35,19 +35,26 @@ void Router::traceback(Circuit &c, int x, int y, int pin, int side) {
 			goto NO_SRC;
 			break;
 		} else {
+			printf("Adding sblck[%d,%d] to path with side[%d] PIN[%d]\n",cur_x, cur_y, cur_side, cur_pin);
 			Path p(cur_pin, cur_side, blck);
 			cur_path_p.push_back(p);
 		}
 
-		//printf("[INFO] @Sblock[%d][%d] **\n    Heading Back <<<<-- from [%d]\n", cur_x, cur_y, cur_side);
-
+		printf("[INFO] @Sblock[%d][%d] **\n    Heading Back <<<<-- from [%d]\n", cur_x, cur_y, cur_side);
+		// if(cur_side==SOUTH) {
+		// 	blck.display_block();
+		// 	cin.ignore();
+		// }
 		for(dir=0; dir<4; ++dir) {
 			for(i=0; i<c.get_width(); ++i) {
-				if(blck.is_side_avail(dir)==1) {
+				if(blck.is_side_avail(dir)==1 && dir != cur_side) {
 					if(blck.get_pin(dir, cur_side, i) == 0) {
 						
 						//printf("[INFO] Source discovered. Saving Path.\n");
 						blck.set_pin(dir, cur_side, i, UNAVAIL);
+						Path p(blck.get_pin_pos(dir, cur_side, cur_pin), dir, blck);
+						cur_path_p.push_back(p);
+
 						found_src=1;
 						src_hit=1;
 						goto FOUND_SRC;
@@ -57,7 +64,7 @@ void Router::traceback(Circuit &c, int x, int y, int pin, int side) {
 							min_pin_weight=blck.get_pin(dir, cur_side, i);
 							cur_pin=i;
 							next_side=dir;
-						}	
+						}
 					}
 				}
 			}
@@ -128,7 +135,9 @@ void Router::begin_traceback(Circuit &c, int x, int y, int came_from) {
 			for(j=0;j<4;++j) {
 				if(t_src.is_side_avail(j)==1) {
 					if(t_src.get_pin(j, side, i) == USED) {
+						//t_src.display_block();
 						t_src.set_pin(j, side, i, UNAVAIL);
+						//t_src.display_block();
 						traceback(c, x, y, i, j);
 						i=MAX_WEIGHT;
 						j=MAX_WEIGHT;
@@ -176,6 +185,9 @@ int Router::check_for_target(Circuit &c, int x, int y, int came_from, int HEAD) 
 							return 1;
 
 						} else {
+							if(p_trg.get_x()==2 && p_trg.get_y()==2){
+								p_trg.display_block();
+							}
 							p_trg.set_pin(j, side, i, USED);
 							target_hit=1;
 							return 1;
@@ -232,7 +244,7 @@ void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, in
 		cur_y=sblcks_y[HEAD];
 		cur_heading=going[HEAD];
 
-		//printf("[router] -- inspecting [%d][%d], heading [%d]\n", cur_x, cur_y, cur_heading);
+		printf("[router] -- inspecting [%d][%d], heading [%d]\n", cur_x, cur_y, cur_heading);
 		if(check_for_target(c, cur_x, cur_y, cur_heading, HEAD) == 1) {
 			printf("[SEARCH] --Target Acquired.\n");
 			if(HEAD != 0) {
