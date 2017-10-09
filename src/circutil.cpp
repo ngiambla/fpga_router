@@ -18,12 +18,12 @@ vector<int> generate_unique_colors(int how_many);
 static Circuit circuit;
 Paths_t paths;
 
-CConfig init_util(char * filename) {
+CConfig init_util(char * filename, int width_reduction) {
 	CConfig config;
     FILE *fp;
     int decode_stage=0;
     char line[128];
-
+    cout<<width_reduction<<"\n";
 	fp = fopen(filename, "r");
 	if (fp) {
 	    while (fgets (line , 128 , fp) != NULL) {
@@ -33,7 +33,7 @@ CConfig init_util(char * filename) {
 	    			config.set_grid_size(atoi(line));
 	    			break;
 	    		case 1:				//read in width
-	    			config.set_track_width(atoi(line));
+	    			config.set_track_width(atoi(line)-width_reduction);
 	    			break;
 	    		default:				//read netlists;
 	    			char * token = strtok(line, " ");
@@ -90,8 +90,8 @@ int main(int argc, char *argv[]) {
 		try { 
 			printf("\n\n############### [fpga_router] ###############\n\n");
 			printf("-- init.\n\n");
-			while(reroute_enabled==1 && reroute_tries<10){
-				config=init_util(filename);
+			while(reroute_enabled==1){
+				config=init_util(filename, reroute_tries);
 				config.reorder_nets();
 				config.display_config();
 
@@ -100,34 +100,35 @@ int main(int argc, char *argv[]) {
 				paths=router.begin_routing(circuit);
 
 				if(router.was_routable()==0) {
+					++reroute_tries;
+				} else {
 					reroute_enabled=0;
 				}
-				++reroute_tries;
 			}
 			// if(paths.size() == 0) {
 			// 	printf("[ERROR] Fatal Error. Netlist unroutable.\n");
 			// 	exit(-1);
 			// }
 
-			printf("-- Going to Display.\n");
-			init_graphics("#-##-###-#### [FPGA Router] ####-###-##-#", WHITE);
+			// printf("-- Going to Display.\n");
+			// init_graphics("#-##-###-#### [FPGA Router] ####-###-##-#", WHITE);
 
-			sprintf(buf, "-- Circuit [%s] Routed.", argv[2]);
+			// sprintf(buf, "-- Circuit [%s] Routed.", argv[2]);
 
-			update_message(buf);
+			// update_message(buf);
 
-   			init_world (0, 0, 1000, 1000);			
-			clearscreen();
+   // 			init_world (0, 0, 1000, 1000);			
+			// clearscreen();
 
 
-			set_keypress_input (false);
-			set_mouse_move_input (false);
+			// set_keypress_input (false);
+			// set_mouse_move_input (false);
 
-			drawscreen();
-			event_loop(act_on_button_press, act_on_mouse_move, act_on_key_press, drawscreen);
+			// drawscreen();
+			// event_loop(act_on_button_press, act_on_mouse_move, act_on_key_press, drawscreen);
 
-			close_graphics ();
-			printf ("[Router] Completed. Exited\n>\n>\n");
+			// close_graphics ();
+			// printf ("[Router] Completed. Exited\n>\n>\n");
 
 
 		} catch (const char* msg) { 

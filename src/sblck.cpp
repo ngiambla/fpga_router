@@ -1,6 +1,7 @@
 #include "cirdefs.h"
 #include "track.h"
 #include "sblck.h"
+#include <thread>
 
 
 void Sblck::connect_track(Track &trck, int side) {
@@ -202,6 +203,7 @@ void Sblck::display_id() {
 int Sblck::set_switch(int dest, int src, int pin) {
 	int i;
 	vector<int> * src_v, * dest_v;
+
 	if(sw_type == 'f') {
 		if(is_side_avail(dest) == 1) {
 			src_v=get_side(src);
@@ -219,6 +221,5 @@ int Sblck::set_switch(int dest, int src, int pin) {
 					(*dest_v)[i]=(*src_v)[pin]+1;
 			}
 		}
-	}
-	
+	}	
 }

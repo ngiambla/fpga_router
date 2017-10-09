@@ -22,11 +22,12 @@ class Router {
 		vector<int> sblcks_x_p;
 		vector<int> sblcks_y_p;
 		vector<int> going_p;
-		int HEAD_P;
-
+		int src_hit;
+		int target_hit;
+		
 		char is_parallel;
 
-		int target_hit;
+		
 		void add_to_queue(vector<int> &_x, vector<int> &_y, vector<int> &_g, int x1, int y1, int dir);
 		void begin_search(Circuit &c, int x, int y, int init_dir);
 		void search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, int heading2);
@@ -40,7 +41,8 @@ class Router {
 		Router(vector< vector<int> > netlist, char is_parallel){
 			this->netlist=netlist;
 			this->is_parallel = is_parallel;
-			target_hit=0;
+			this->target_hit=0;
+			this->src_hit=0;
 		}
 		
 		Paths_t begin_routing(Circuit &c);
