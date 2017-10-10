@@ -29,9 +29,10 @@ void Router::traceback(Circuit &c, int x, int y, int pin, int side) {
 	while(found_src==0) {
 
 		Sblck blck=c.get_switch(cur_x,cur_y);
-
 		if(add_block_to_path(cur_path, blck)==0) {
+			blck.display_block();
 			printf("[ERR] -- encountered this block already.\n");
+			exit(-10);
 			goto NO_SRC;
 			break;
 		} else {
@@ -46,28 +47,56 @@ void Router::traceback(Circuit &c, int x, int y, int pin, int side) {
 		// 	cin.ignore();
 		// }
 		for(dir=0; dir<4; ++dir) {
-			for(i=0; i<c.get_width(); ++i) {
-				if(blck.is_side_avail(dir)==1 && dir != cur_side) {
-					if(blck.get_pin(dir, cur_side, i) == 0) {
-						
-						//printf("[INFO] Source discovered. Saving Path.\n");
-						blck.set_pin(dir, cur_side, i, UNAVAIL);
-						Path p(blck.get_pin_pos(dir, cur_side, cur_pin), dir, blck);
-						cur_path_p.push_back(p);
+			if(c.get_type() == 'f') {
+				for(i=0; i<c.get_width(); ++i) {
+					if(blck.is_side_avail(dir)==1 && dir != cur_side) {
+						if(blck.get_pin(dir, cur_side, i) == 0) {
+							
+							//printf("[INFO] Source discovered. Saving Path.\n");
+							blck.set_pin(dir, cur_side, i, UNAVAIL);
+							Path p(blck.get_pin_pos(dir, cur_side, cur_pin), dir, blck);
+							cur_path_p.push_back(p);
 
-						found_src=1;
-						src_hit=1;
-						goto FOUND_SRC;
+							found_src=1;
+							src_hit=1;
+							goto FOUND_SRC;
 
-					} else if(blck.get_pin(dir, cur_side, i) > 0 && blck.is_side_avail(dir) == 1) {
-						if(blck.get_pin(dir, cur_side, i) < min_pin_weight) {
-							min_pin_weight=blck.get_pin(dir, cur_side, i);
-							cur_pin=i;
-							next_side=dir;
+						} else if(blck.get_pin(dir, cur_side, i) > 0 && blck.is_side_avail(dir) == 1) {
+							if(blck.get_pin(dir, cur_side, i) < min_pin_weight) {
+								min_pin_weight=blck.get_pin(dir, cur_side, i);
+								cur_pin=i;
+								next_side=dir;
+							}
 						}
 					}
 				}
+			} else {
+				if(blck.is_side_avail(dir)==1 && dir != cur_side) {
+					if(blck.get_pin(dir, cur_side, cur_pin)>0) {
+						blck.display_block();
+						if(blck.get_pin(dir, cur_side, cur_pin) == min_pin_weight-1) {
+							min_pin_weight=blck.get_pin(dir, cur_side, cur_pin);
+							cur_pin=blck.get_pin_pos(dir, cur_side, cur_pin);
+							next_side=dir;
+						} else if(min_pin_weight == MAX_WEIGHT) {
+							if(blck.get_pin(dir, cur_side, cur_pin) < min_pin_weight) {
+								min_pin_weight=blck.get_pin(dir, cur_side, cur_pin);
+								cur_pin=blck.get_pin_pos(dir, cur_side, cur_pin);
+								next_side=dir;
+							}
+						}
+					} else if(blck.get_pin(dir, cur_side, cur_pin) == 0) {
+							blck.set_pin(dir, cur_side, cur_pin, UNAVAIL);
+							Path p(blck.get_pin_pos(dir, cur_side, cur_pin), dir, blck);
+							cur_path_p.push_back(p);
+
+							found_src=1;
+							src_hit=1;
+							goto FOUND_SRC;
+					}
+				}
 			}
+
 		}
 
 
@@ -134,10 +163,8 @@ void Router::begin_traceback(Circuit &c, int x, int y, int came_from) {
 		for(i=0;i<c.get_size();++i){
 			for(j=0;j<4;++j) {
 				if(t_src.is_side_avail(j)==1) {
-					if(t_src.get_pin(j, side, i) == USED) {
-						//t_src.display_block();
+					if(t_src.get_pin(j, side, i) == USED && t_src.get_pin(side, i) >=0) {
 						t_src.set_pin(j, side, i, UNAVAIL);
-						//t_src.display_block();
 						traceback(c, x, y, i, j);
 						i=MAX_WEIGHT;
 						j=MAX_WEIGHT;
@@ -156,7 +183,6 @@ int Router::check_for_target(Circuit &c, int x, int y, int came_from, int HEAD) 
 	vector<Path> cur_path;
 
 	Sblck p_trg=c.get_switch(x,y);
-
 	switch(came_from) {
 		case NORTH:
 			side=SOUTH;
@@ -185,9 +211,6 @@ int Router::check_for_target(Circuit &c, int x, int y, int came_from, int HEAD) 
 							return 1;
 
 						} else {
-							if(p_trg.get_x()==2 && p_trg.get_y()==2){
-								p_trg.display_block();
-							}
 							p_trg.set_pin(j, side, i, USED);
 							target_hit=1;
 							return 1;

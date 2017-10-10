@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
 			printf("-- init.\n\n");
 			while(reroute_enabled==1){
 				config=init_util(filename, reroute_tries);
-				config.reorder_nets();
+				//config.reorder_nets();
 				config.display_config();
 
 				circuit=gen_circuit(config, argv[4][0]);
@@ -258,7 +258,7 @@ void drawscreen (void) {
 
 		start_path=0;
 		for(Path ele : path) {
-			ele.display_path();
+			//ele.display_path();
 			Sblck s=ele.get_sblck();
 			switch(ele.get_side()) {
 				case NORTH:
@@ -272,9 +272,13 @@ void drawscreen (void) {
 						j=nets[cur_path][4]*2;
 						k=nets[cur_path][5]-1;
 						if(k == EAST) {	
-							drawline(110+(j+1)*blck_sz, 110+i*(blck_sz)+lblck_w_offset, 110+(j+2)*blck_sz-offset-offset*ele.get_pin()*2, 110+i*(blck_sz)+lblck_w_offset);
+							sprintf(buf,"T[%d]", cur_path);
+							drawtext(110+(j+1)*blck_sz-10, 110+i*(blck_sz)+lblck_w_offset,buf,800);
+							drawline(110+(j+1)*blck_sz, 110+i*(blck_sz)+lblck_w_offset, 110+(j+1)*blck_sz+offset+offset*ele.get_pin()*2, 110+i*(blck_sz)+lblck_w_offset);
 						} else {
-							drawline(110+(j-1)*blck_sz+offset*ele.get_pin()*2, 110+(i+1)*(blck_sz)-lblck_w_offset, 110+(j)*blck_sz, 110+(i+1)*(blck_sz)-lblck_w_offset);
+							sprintf(buf,"T[%d]", cur_path);
+							drawtext(110+(j)*blck_sz+10, 110+(i+1)*(blck_sz)-lblck_w_offset,buf,800);
+							drawline(110+(j-1)*blck_sz+offset+offset*ele.get_pin()*2, 110+(i+1)*(blck_sz)-lblck_w_offset, 110+(j)*blck_sz, 110+(i+1)*(blck_sz)-lblck_w_offset);
 						}
 					}
 					if(start_path==path.size()-1) {
@@ -282,6 +286,15 @@ void drawscreen (void) {
 						i=nets[cur_path][0];
 						j=nets[cur_path][1];
 						k=nets[cur_path][2]-1;
+						if(k == EAST) {	
+							sprintf(buf,"T[%d]", cur_path);
+							drawtext(110+(j+1)*blck_sz-10, 110+i*(blck_sz)+lblck_w_offset,buf,800);
+							drawline(110+(j+1)*blck_sz, 110+i*(blck_sz)+lblck_w_offset, 110+(j+1)*blck_sz+offset+offset*ele.get_pin()*2, 110+i*(blck_sz)+lblck_w_offset);
+						} else {
+							sprintf(buf,"S[%d]", cur_path);
+							drawtext(110+(j)*blck_sz+10, 110+(i+1)*(blck_sz)-lblck_w_offset,buf,800);
+							drawline(110+(j-1)*blck_sz+offset+offset*ele.get_pin()*2, 110+(i+1)*(blck_sz)-lblck_w_offset, 110+(j)*blck_sz, 110+(i+1)*(blck_sz)-lblck_w_offset);
+						}						
 					}
 					break;
 				case EAST:
@@ -303,10 +316,34 @@ void drawscreen (void) {
 					j=s.get_y()*2;
 					drawline (10+offset+j*blck_sz+k*inc_wire,10+i*blck_sz,10+offset+j*blck_sz+k*inc_wire,110+i*blck_sz);
 					if(start_path==0) {
-
+						vector< vector<int> > nets=config.get_netlist();
+						i=nets[cur_path][3]*2;
+						j=nets[cur_path][4]*2;
+						k=nets[cur_path][5]-1;
+						if(k == EAST) {	
+							sprintf(buf,"T[%d]", cur_path);
+							drawtext(110+(j+1)*blck_sz-10, 110+i*(blck_sz)+lblck_w_offset,buf,800);
+							drawline(110+(j+1)*blck_sz, 110+i*(blck_sz)+lblck_w_offset, 110+(j+1)*blck_sz+offset+offset*ele.get_pin()*2, 110+i*(blck_sz)+lblck_w_offset);
+						} else {
+							sprintf(buf,"T[%d]", cur_path);
+							drawtext(110+(j)*blck_sz+10, 110+(i+1)*(blck_sz)-lblck_w_offset,buf,800);
+							drawline(110+(j-1)*blck_sz+offset+offset*ele.get_pin()*2, 110+(i+1)*(blck_sz)-lblck_w_offset, 110+(j)*blck_sz, 110+(i+1)*(blck_sz)-lblck_w_offset);
+						}
 					}
 					if(start_path==path.size()-1) {
-
+						vector< vector<int> > nets=config.get_netlist();
+						i=nets[cur_path][0];
+						j=nets[cur_path][1];
+						k=nets[cur_path][2]-1;
+						if(k == EAST) {	
+							sprintf(buf,"T[%d]", cur_path);
+							drawtext(110+(j+1)*blck_sz-10, 110+i*(blck_sz)+lblck_w_offset,buf,800);
+							drawline(110+(j+1)*blck_sz, 110+i*(blck_sz)+lblck_w_offset, 110+(j+1)*blck_sz+offset+offset*ele.get_pin()*2, 110+i*(blck_sz)+lblck_w_offset);
+						} else {
+							sprintf(buf,"S[%d]", cur_path);
+							drawtext(110+(j)*blck_sz+10, 110+(i+1)*(blck_sz)-lblck_w_offset,buf,800);
+							drawline(110+(j-1)*blck_sz+offset+offset*ele.get_pin()*2, 110+(i+1)*(blck_sz)-lblck_w_offset, 110+(j)*blck_sz, 110+(i+1)*(blck_sz)-lblck_w_offset);
+						}						
 					}
 					break;
 				case WEST:
@@ -324,7 +361,7 @@ void drawscreen (void) {
 			}
 			++start_path;
 		}
-		printf("\n\n");
+		//printf("\n\n");
 		cur_path++;
 	}
 
