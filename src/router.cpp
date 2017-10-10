@@ -41,18 +41,19 @@ void Router::traceback(Circuit &c, int x, int y, int pin, int side, int weight) 
 	while(found_src == 0) {
 		
 		Sblck blck = c.get_switch(cur_x,cur_y);
-		printf("-- Inspecting [%d][%d]. Entered block at [%d] side.\n", cur_x, cur_y, cur_side);
-		blck.display_block();
+		//printf("-- Inspecting [%d][%d]. Entered block at [%d] side, pin[%d].\n", cur_x, cur_y, cur_side, cur_pin);
 		used=1;
 		for(dir=0; dir<4; ++ dir) {
-			printf("dir[%d]\n", dir);
+			//printf("dir[%d]\n", dir);
 			if(blck.is_side_avail(dir) == 1) {
 				if(c.get_type() == 'f') {
 					for(i=0; i<c.get_width(); ++i) {
 						if(blck.get_pin(dir, cur_side, i) == 0 ) {
 							printf("Source Pin Found.\n");
 							Path p(blck.get_pin_pos(dir, cur_side, cur_pin), dir, blck);
+							Path p2(i, cur_side, blck);
 							cur_path_p.push_back(p);
+							cur_path_p.push_back(p2);
 							found_src=1;
 							src_hit=1;
 							goto FOUND_SRC;
@@ -65,36 +66,40 @@ void Router::traceback(Circuit &c, int x, int y, int pin, int side, int weight) 
 					if(blck.get_pin(dir, cur_side, cur_pin)==0) {
 						printf("Source Pin Found.\n");
 						Path p(blck.get_pin_pos(dir, cur_side, cur_pin), dir, blck);
+						Path p2(cur_pin, cur_side, blck);
 						cur_path_p.push_back(p);
+						cur_path_p.push_back(p2);
+
 						found_src=1;
 						src_hit=1;
 						goto FOUND_SRC;
 
-					} else if(blck.get_pin(dir, cur_side, cur_pin)==(cur_weight-1) && dir!=cur_side) {
+					} else if(blck.get_pin(dir, cur_side, cur_pin)==(cur_weight-1)) {
 						next_side=dir;
 						used=0;
-						printf("cur_side[%d] next_side[%d] weight[%d] cur_weight[%d]\n",cur_side, next_side,blck.get_pin(dir, cur_side, cur_pin), cur_weight-1);
+						//printf("cur_side[%d] next_side[%d] weight[%d] cur_weight[%d]\n",cur_side, next_side,blck.get_pin(dir, cur_side, cur_pin), cur_weight-1);
 					}
 				}
 			}
 		}
 		if(used==1) {
 			printf("Did not find anything....\n");
-			exit(-1);
+			goto NO_SRC;
 		}
 		switch(next_side) {
 			case NORTH:
 				blck.set_pin(next_side, cur_side, cur_pin, UNAVAIL);
 				if(add_block_to_path(cur_path, blck)==0) {
-					blck.display_block();
 					printf("[ERR] -- encountered this block already.\n");
 					exit(-1);
 					goto NO_SRC;
 					break;
 				} else {
-					printf("Adding sblck[%d,%d] to path with side[%d] PIN[%d]\n",cur_x, cur_y, cur_side, cur_pin);
+					//printf("Adding sblck[%d,%d] to path with side[%d] PIN[%d]\n",cur_x, cur_y, cur_side, cur_pin);
 					Path p(cur_pin, cur_side, blck);
+					Path p2(blck.get_pin_pos(next_side, cur_side, cur_pin), next_side, blck);
 					cur_path_p.push_back(p);
+					cur_path_p.push_back(p2);
 				}
 				cur_x=cur_x-1;
 				cur_pin=blck.get_pin_pos(next_side, cur_side, cur_pin);
@@ -104,15 +109,16 @@ void Router::traceback(Circuit &c, int x, int y, int pin, int side, int weight) 
 			case EAST:
 				blck.set_pin(next_side, cur_side, cur_pin, UNAVAIL);
 				if(add_block_to_path(cur_path, blck)==0) {
-					blck.display_block();
 					printf("[ERR] -- encountered this block already.\n");
 					exit(-1);
 					goto NO_SRC;
 					break;
 				} else {
-					printf("Adding sblck[%d,%d] to path with side[%d] PIN[%d]\n",cur_x, cur_y, cur_side, cur_pin);
+					//printf("Adding sblck[%d,%d] to path with side[%d] PIN[%d]\n",cur_x, cur_y, cur_side, cur_pin);
 					Path p(cur_pin, cur_side, blck);
+					Path p2(blck.get_pin_pos(next_side, cur_side, cur_pin), next_side, blck);
 					cur_path_p.push_back(p);
+					cur_path_p.push_back(p2);
 				}
 				cur_y=cur_y+1; 
 				cur_pin=blck.get_pin_pos(next_side, cur_side, cur_pin);
@@ -122,15 +128,16 @@ void Router::traceback(Circuit &c, int x, int y, int pin, int side, int weight) 
 			case SOUTH:
 				blck.set_pin(next_side, cur_side, cur_pin, UNAVAIL);
 				if(add_block_to_path(cur_path, blck)==0) {
-					blck.display_block();
 					printf("[ERR] -- encountered this block already.\n");
 					exit(-1);
 					goto NO_SRC;
 					break;
 				} else {
-					printf("Adding sblck[%d,%d] to path with side[%d] PIN[%d]\n",cur_x, cur_y, cur_side, cur_pin);
+					//printf("Adding sblck[%d,%d] to path with side[%d] PIN[%d]\n",cur_x, cur_y, cur_side, cur_pin);
 					Path p(cur_pin, cur_side, blck);
+					Path p2(blck.get_pin_pos(next_side, cur_side, cur_pin), next_side, blck);
 					cur_path_p.push_back(p);
+					cur_path_p.push_back(p2);
 				}
 				cur_x=cur_x+1;
 				cur_pin=blck.get_pin_pos(next_side, cur_side, cur_pin);
@@ -140,15 +147,16 @@ void Router::traceback(Circuit &c, int x, int y, int pin, int side, int weight) 
 			case WEST:
 				blck.set_pin(next_side, cur_side, cur_pin, UNAVAIL);
 				if(add_block_to_path(cur_path, blck)==0) {
-					blck.display_block();
 					printf("[ERR] -- encountered this block already.\n");
 					exit(-1);
 					goto NO_SRC;
 					break;
 				} else {
-					printf("Adding sblck[%d,%d] to path with side[%d] PIN[%d]\n",cur_x, cur_y, cur_side, cur_pin);
+					//printf("Adding sblck[%d,%d] to path with side[%d] PIN[%d]\n",cur_x, cur_y, cur_side, cur_pin);
 					Path p(cur_pin, cur_side, blck);
+					Path p2(blck.get_pin_pos(next_side, cur_side, cur_pin), next_side, blck);
 					cur_path_p.push_back(p);
+					cur_path_p.push_back(p2);
 				}
 				cur_y=cur_y-1;
 				cur_pin=blck.get_pin_pos(next_side, cur_side, cur_pin);
@@ -198,11 +206,16 @@ int Router::check_for_target(Circuit &c, int x, int y, int came_from, int HEAD) 
 							Path p(i, j, p_trg);
 							cur_path.push_back(p);
 							all_paths.push_back(cur_path);
+							printf("Traced.\n");
+
+							target_hit=1;
 							return 1;
 
 						} else {
 							p_trg.set_pin(j, side, i, UNAVAIL);
+							printf("Beginning Traceback.\n");
 							traceback(c, x, y, p_trg.get_pin_pos(j,side,i), j, p_trg.get_pin(side, i));
+
 							target_hit=1;
 							return 1;
 						}
@@ -220,7 +233,6 @@ int Router::check_for_target(Circuit &c, int x, int y, int came_from, int HEAD) 
 
 void Router::add_to_queue(vector<int> &_x, vector<int> &_y, vector<int> &_g, int x1, int y1, int dir) {
 	int i=0, append=0;
-	queue_mut.lock();
 	for(i=0; i<_x.size();++i) {
 		if(_x[i]== x1 && _y[i]==y1) {
 			append=1;
@@ -232,8 +244,6 @@ void Router::add_to_queue(vector<int> &_x, vector<int> &_y, vector<int> &_g, int
 		_y.push_back(y1);
 		_g.push_back(dir);
 	}
-	queue_mut.unlock();
-
 }
 
 void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, int heading2) {
@@ -369,19 +379,17 @@ void Router::search_p(Circuit &c, int x1, int y1, int heading1) {
 	going.push_back(heading1);
 
 	while(HEAD < sblcks_x.size()) {
+		trace_mut.lock();
 
 		cur_x=sblcks_x[HEAD];
 		cur_y=sblcks_y[HEAD];
 		cur_heading=going[HEAD];
 
-
-		trace_mut.lock();
 		ans=check_for_target(c, cur_x, cur_y, cur_heading, HEAD);
-		if(ans == 1 || ans == -1 || target_hit==1 || src_hit ==1 || traceback_started ==1) {
+		if(ans == 1 || ans == -1 || target_hit==1 || src_hit ==1 || traceback_started == 1) {
 			trace_mut.unlock();
 			return;
 		}
-		trace_mut.unlock();
 
 		Sblck s_t = c.get_switch(cur_x, cur_y);
 
@@ -453,7 +461,7 @@ void Router::search_p(Circuit &c, int x1, int y1, int heading1) {
 					break;
 			}
 		}
-		s_t.was_used();
+
 		if(nflag==1) {
 			add_to_queue(sblcks_x, sblcks_y, going, cur_x-1, cur_y, NORTH);
 			nflag=0;
@@ -471,6 +479,7 @@ void Router::search_p(Circuit &c, int x1, int y1, int heading1) {
 			wflag=0;			
 		}
 		++HEAD;
+		trace_mut.unlock();
 	}
 }
 

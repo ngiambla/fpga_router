@@ -2,7 +2,6 @@
 #include "track.h"
 #include "sblck.h"
 
-
 void Sblck::connect_track(Track &trck, int side) {
 	switch(side) {
 		case NORTH:
@@ -101,17 +100,13 @@ int Sblck::wilton(int dest, int src, int i) {
 }
 
 void Sblck::set_pin(int dest, int src, int pin, int weight) {
-	mutex blck_access;
 	int i;
-	blck_access.lock();
 	if(sw_type=='f' || src == dest) {
 		set_pin(dest, pin, weight);
 	} else {
 		i=wilton(dest, src, pin);
 		set_pin(dest, i, weight);
 	}
-	blck_access.unlock();
-
 }
 
 int Sblck::get_pin(int side, int pin) {
@@ -206,8 +201,6 @@ void Sblck::display_id() {
 int Sblck::set_switch(int dest, int src, int pin) {
 	int i;
 	vector<int> * src_v, * dest_v;
-	mutex blck_access;
-	blck_access.lock();
 	if(was_seen==0) {
 		if(sw_type == 'f') {
 			if(is_side_avail(dest) == 1) {
@@ -228,15 +221,13 @@ int Sblck::set_switch(int dest, int src, int pin) {
 				}
 			}
 		}
+	} else {
+		printf("Not Used....\n");
 	}
-	blck_access.unlock();
 
 }
 
 void Sblck::was_used() {
-	mutex blck_access;
-	blck_access.lock();
 	was_seen=1;
-	blck_access.unlock();
 }
 

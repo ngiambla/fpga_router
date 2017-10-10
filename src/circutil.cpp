@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
 			printf("-- init.\n\n");
 			while(reroute_enabled==1){
 				config=init_util(filename, reroute_tries);
-				config.reorder_nets();
+				//config.reorder_nets();
 				config.display_config();
 
 				circuit=gen_circuit(config, argv[4][0]);
@@ -111,6 +111,8 @@ int main(int argc, char *argv[]) {
 					}
 				}
 			}
+
+			config.display_config();
 
 			if(argv[8][0]=='n') {
 				printf("-- Going to Display.\n");
@@ -213,7 +215,7 @@ void drawscreen (void) {
 							if(k%2==0){
 
 								if(sblck.get_pin(EAST, k/2)== UNAVAIL){
-									//setcolor(GREEN);
+									setcolor(GREEN);
 								} else {
 									setcolor(BLACK);
 								}
@@ -229,7 +231,7 @@ void drawscreen (void) {
 						for(k=0;k<width_size*2; ++k) {
 							if(k%2==0){
 								if(sblck.get_pin(SOUTH, k/2)==UNAVAIL){
-									//setcolor(GREEN);
+									setcolor(GREEN);
 								} else {
 									setcolor(BLACK);
 								}
@@ -247,7 +249,7 @@ void drawscreen (void) {
 		set_color(colors[cur_path]);
 		start_path=0;
 		for(Path ele : path) {
-			ele.display_path();
+			//ele.display_path();
 			Sblck s=ele.get_sblck();
 			switch(ele.get_side()) {
 				case NORTH:
@@ -398,7 +400,7 @@ void drawscreen (void) {
 			}
 			++start_path;
 		}
-		printf("\n\n");
+		//printf("\n\n");
 		cur_path++;
 	}
 
