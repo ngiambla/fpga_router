@@ -59,9 +59,7 @@ CConfig init_util(char * filename, int width_reduction) {
 		printf("[ERR] The specified file [%s] doesn't exist.\n\n", filename);
 		exit(-1);
 	}
-    
-    //config.display_config();
-	return config;
+    return config;
 }
 
 Circuit gen_circuit(CConfig config, char type) {
@@ -95,7 +93,7 @@ int main(int argc, char *argv[]) {
 			printf("-- init.\n\n");
 			while(reroute_enabled==1){
 				config=init_util(filename, reroute_tries);
-				//config.reorder_nets();
+				config.reorder_nets();
 				config.display_config();
 
 				circuit=gen_circuit(config, argv[4][0]);
@@ -196,14 +194,6 @@ void drawscreen (void) {
 		}
 	}
 
-	// vector< vector<int> > nets=config.get_netlist();
-	// for(vector<int> net : nets) {
-	// 	i=net[0]*2;
-	// 	j=net[1]*2;
-
-
-	// }
-
 	//Draw Switch Blocks
 	for(i=0; i< grid_size*2+1; ++i) {
 		for(j=0; j<grid_size*2+1; ++j) {
@@ -255,10 +245,9 @@ void drawscreen (void) {
 	colors=generate_unique_colors(paths.size());
 	for(Path_t path : paths) {
 		set_color(colors[cur_path]);
-
 		start_path=0;
 		for(Path ele : path) {
-			//ele.display_path();
+			ele.display_path();
 			Sblck s=ele.get_sblck();
 			switch(ele.get_side()) {
 				case NORTH:
@@ -283,8 +272,8 @@ void drawscreen (void) {
 					}
 					if(start_path==path.size()-1) {
 						vector< vector<int> > nets=config.get_netlist();
-						i=nets[cur_path][0];
-						j=nets[cur_path][1];
+						i=nets[cur_path][0]*2;
+						j=nets[cur_path][1]*2;
 						k=nets[cur_path][2]-1;
 						if(k == EAST) {	
 							sprintf(buf,"T[%d]", cur_path);
@@ -303,10 +292,34 @@ void drawscreen (void) {
 					j=s.get_y()*2+1;
 					drawline (10+j*blck_sz,10+offset+i*blck_sz+k*inc_wire,110+j*blck_sz,10+offset+i*blck_sz+k*inc_wire);
 					if(start_path==0) {
-
+						vector< vector<int> > nets=config.get_netlist();
+						i=nets[cur_path][3]*2;
+						j=nets[cur_path][4]*2;
+						k=nets[cur_path][5]-1;
+						if(k==NORTH) {
+							sprintf(buf, "T[%d]", cur_path);
+							drawtext(110+j*blck_sz+lblck_w_offset, 110+(i)*(blck_sz)+10, buf, 800);
+							drawline(110+j*blck_sz+lblck_w_offset, 110+(i-1)*(blck_sz)+offset+offset*ele.get_pin()*2, 110+j*blck_sz+lblck_w_offset, 110+i*(blck_sz));
+						} else {
+							sprintf(buf, "T[%d]", cur_path);
+							drawtext(110+(j+1)*blck_sz-lblck_w_offset, 110+(i+1)*(blck_sz)-10, buf, 800);
+							drawline(110+(j+1)*blck_sz-lblck_w_offset, 110+(i+1)*(blck_sz), 110+(j+1)*blck_sz-lblck_w_offset, 110+(i+1)*(blck_sz)+offset+offset*ele.get_pin()*2);
+						}
 					}
 					if(start_path==path.size()-1) {
-
+						vector< vector<int> > nets=config.get_netlist();
+						i=nets[cur_path][0]*2;
+						j=nets[cur_path][1]*2;
+						k=nets[cur_path][2]-1;
+						if(k==NORTH) {
+							sprintf(buf, "S[%d]", cur_path);
+							drawtext(110+j*blck_sz+lblck_w_offset, 110+(i)*(blck_sz)+10, buf, 800);
+							drawline(110+j*blck_sz+lblck_w_offset, 110+(i-1)*(blck_sz)+offset+offset*ele.get_pin()*2, 110+j*blck_sz+lblck_w_offset, 110+i*(blck_sz));
+						} else {
+							sprintf(buf, "S[%d]", cur_path);
+							drawtext(110+(j+1)*blck_sz-lblck_w_offset, 110+(i+1)*(blck_sz)-10, buf, 800);
+							drawline(110+(j+1)*blck_sz-lblck_w_offset, 110+(i+1)*(blck_sz), 110+(j+1)*blck_sz-lblck_w_offset, 110+(i+1)*(blck_sz)+offset+offset*ele.get_pin()*2);
+						}
 					}
 					break;
 
@@ -332,8 +345,8 @@ void drawscreen (void) {
 					}
 					if(start_path==path.size()-1) {
 						vector< vector<int> > nets=config.get_netlist();
-						i=nets[cur_path][0];
-						j=nets[cur_path][1];
+						i=nets[cur_path][0]*2;
+						j=nets[cur_path][1]*2;
 						k=nets[cur_path][2]-1;
 						if(k == EAST) {	
 							sprintf(buf,"T[%d]", cur_path);
@@ -352,16 +365,40 @@ void drawscreen (void) {
 					j=s.get_y()*2-1;
 					drawline (10+j*blck_sz,10+offset+i*blck_sz+k*inc_wire,110+j*blck_sz,10+offset+i*blck_sz+k*inc_wire);
 					if(start_path==0) {
-
+						vector< vector<int> > nets=config.get_netlist();
+						i=nets[cur_path][3]*2;
+						j=nets[cur_path][4]*2;
+						k=nets[cur_path][5]-1;
+						if(k==NORTH) {
+							sprintf(buf, "T[%d]", cur_path);
+							drawtext(110+j*blck_sz+lblck_w_offset, 110+(i)*(blck_sz)+10, buf, 800);
+							drawline(110+j*blck_sz+lblck_w_offset, 110+(i-1)*(blck_sz)+offset+offset*ele.get_pin()*2, 110+j*blck_sz+lblck_w_offset, 110+i*(blck_sz));
+						} else {
+							sprintf(buf, "T[%d]", cur_path);
+							drawtext(110+(j+1)*blck_sz-lblck_w_offset, 110+(i+1)*(blck_sz)-10, buf, 800);
+							drawline(110+(j+1)*blck_sz-lblck_w_offset, 110+(i+1)*(blck_sz), 110+(j+1)*blck_sz-lblck_w_offset, 110+(i+1)*(blck_sz)+offset+offset*ele.get_pin()*2);
+						}
 					}
 					if(start_path==path.size()-1) {
-
+						vector< vector<int> > nets=config.get_netlist();
+						i=nets[cur_path][0]*2;
+						j=nets[cur_path][1]*2;
+						k=nets[cur_path][2]-1;
+						if(k==NORTH) {
+							sprintf(buf, "S[%d]", cur_path);
+							drawtext(110+j*blck_sz+lblck_w_offset, 110+(i)*(blck_sz)+10, buf, 800);
+							drawline(110+j*blck_sz+lblck_w_offset, 110+(i-1)*(blck_sz)+offset+offset*ele.get_pin()*2, 110+j*blck_sz+lblck_w_offset, 110+i*(blck_sz));
+						} else {
+							sprintf(buf, "S[%d]", cur_path);
+							drawtext(110+(j+1)*blck_sz-lblck_w_offset, 110+(i+1)*(blck_sz)-10, buf, 800);
+							drawline(110+(j+1)*blck_sz-lblck_w_offset, 110+(i+1)*(blck_sz), 110+(j+1)*blck_sz-lblck_w_offset, 110+(i+1)*(blck_sz)+offset+offset*ele.get_pin()*2);
+						}
 					}
 					break;
 			}
 			++start_path;
 		}
-		//printf("\n\n");
+		printf("\n\n");
 		cur_path++;
 	}
 
@@ -372,13 +409,13 @@ void drawscreen (void) {
 
 vector<int> generate_unique_colors(int how_many) {
 	int i=0;
-	float frequency=0.3;
+	float frequency=0.2;
 	unsigned char red, green, blue;
 	vector<int> colors;
 	for (i = 0; i < how_many; ++i) {
 		red   = (unsigned char) (sin(frequency*i + 0) * 127 + 128);
-		green = (unsigned char) (sin(frequency*i + 2) * 127 + 128);
-		blue  = (unsigned char) (sin(frequency*i + 4) * 127 + 128);
+		green = (unsigned char) (sin(frequency*i + 1.5) * 127 + 128);
+		blue  = (unsigned char) (sin(frequency*i + 3) * 127 + 128);
 		colors.push_back(get_color(red, green, blue));
 	}
 	return colors;

@@ -9,9 +9,7 @@
 
 using namespace std;
 
-#define DISCONNECTED -20	//defined for the lblck to sblck.
-#define CONNECTED -10		//
-#define UNAVAIL -5			//
+#define UNAVAIL -50			//
 #define USED -2				//
 #define AVAIL -1			//
 

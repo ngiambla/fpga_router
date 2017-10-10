@@ -34,7 +34,7 @@ class Router {
 		void search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, int heading2);
 		void search_p(Circuit &c, int x1, int y1, int heading1);
 		void begin_traceback(Circuit &c, int x, int y, int came_from);
-		void traceback(Circuit &c, int x, int y, int pin, int side);
+		void traceback(Circuit &c, int x, int y, int pin, int side, int weight);
 		int check_for_target(Circuit &c, int x, int y, int came_from, int HEAD);
 
 	public:

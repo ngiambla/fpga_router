@@ -29,13 +29,13 @@ class Sblck {
 		int s_conn;
 		int w_conn;
 
+		int was_seen;
+
 		int w_per_pin;
 		char sw_type;
 
 		int x;	// to store coords for plot.
 		int y;	//
-
-		static mutex blck_access;
 
 		vector<int>*& get_side(int dir);
 		int wilton(int dest, int src, int pin);
@@ -48,6 +48,8 @@ class Sblck {
 
 			this->x=x;
 			this->y=y;
+
+			was_seen=0;
 
 			w_per_pin=width;
 			
@@ -112,6 +114,7 @@ class Sblck {
 		int get_x();
 		int get_y();
 		void reset();
+		void was_used();
 
 };
 

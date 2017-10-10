@@ -206,22 +206,37 @@ void Sblck::display_id() {
 int Sblck::set_switch(int dest, int src, int pin) {
 	int i;
 	vector<int> * src_v, * dest_v;
-	if(sw_type == 'f') {
-		if(is_side_avail(dest) == 1) {
-			src_v=get_side(src);
-			dest_v=get_side(dest);
-			if((*src_v)[pin] >= 0 && (*dest_v)[pin] == AVAIL) {
-					(*dest_v)[pin]=(*src_v)[pin]+1;
+	mutex blck_access;
+	blck_access.lock();
+	if(was_seen==0) {
+		if(sw_type == 'f') {
+			if(is_side_avail(dest) == 1) {
+				src_v=get_side(src);
+				dest_v=get_side(dest);
+				if((*src_v)[pin] >= 0 && (*dest_v)[pin] == AVAIL) {
+						(*dest_v)[pin]=(*src_v)[pin]+1;
+				}
+
 			}
-		}
-	} else {
-		if(is_side_avail(dest) == 1) {
-			src_v=get_side(src);
-			dest_v=get_side(dest);
-			i=wilton(dest, src, pin);
-			if((*src_v)[pin] >= 0 && (*dest_v)[i] == AVAIL) {
-					(*dest_v)[i]=(*src_v)[pin]+1;
+		} else {
+			if(is_side_avail(dest) == 1) {
+				src_v=get_side(src);
+				dest_v=get_side(dest);
+				i=wilton(dest, src, pin);
+				if((*src_v)[pin] >= 0 && (*dest_v)[i] == AVAIL) {
+						(*dest_v)[i]=(*src_v)[pin]+1;
+				}
 			}
 		}
 	}
+	blck_access.unlock();
+
 }
+
+void Sblck::was_used() {
+	mutex blck_access;
+	blck_access.lock();
+	was_seen=1;
+	blck_access.unlock();
+}
+
