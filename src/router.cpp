@@ -238,7 +238,6 @@ int Router::check_for_target(Circuit &c, int x, int y, int came_from, int HEAD) 
 				if(p_trg.is_side_avail(j)==1) {
 					if(p_trg.get_pin(j, side, i) == TARGET && (p_trg.get_pin(side, i)>=0 || p_trg.get_pin(side, i)== TARGET)) {
 						if(HEAD==0){
-
 							p_trg.set_pin(j, side, i, UNAVAIL);
 							target_hit=1;
 							Path p(i, j, p_trg);
@@ -250,7 +249,6 @@ int Router::check_for_target(Circuit &c, int x, int y, int came_from, int HEAD) 
 						} else {
 							p_trg.set_pin(j, side, i, UNAVAIL);
 							traceback(c, x, y, p_trg.get_pin_pos(j,side,i), j, p_trg.get_pin(side, i));
-
 							target_hit=1;
 							return 1;
 						}
@@ -408,8 +406,14 @@ void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, in
 	}
 }
 
+struct search_hold {
+	int dest;
+	int src;
+	int pin;
+};
 
-void Router::thr_search(Circuit &c, int x1, int y1, int heading1) {
+
+void Router::thr_search(Circuit &c, int x1, int y1, int heading1, int id) {
 	int HEAD=0, i=0, cur_x, cur_y, cur_heading;
 	int eflag=0, nflag=0, sflag=0, wflag=0, ans;
 	int width=c.get_width();
@@ -421,36 +425,50 @@ void Router::thr_search(Circuit &c, int x1, int y1, int heading1) {
 	sblcks_x.push_back(x1);
 	sblcks_y.push_back(y1);
 	going.push_back(heading1);
-
+	
+	vector<search_hold> holds; 
+	search_hold s;
+	//search_mut.lock();
+	cur_x=sblcks_x[HEAD];
+	cur_y=sblcks_y[HEAD];
+	cur_heading=going[HEAD];
+	
 	search_mut.lock();
 	while(HEAD < sblcks_x.size()) {
 
-			cur_x=sblcks_x[HEAD];
-			cur_y=sblcks_y[HEAD];
-			cur_heading=going[HEAD];
-
+			//check_mut.lock();
 			ans=check_for_target(c, cur_x, cur_y, cur_heading, HEAD);
 			if(ans == 1 || ans == -1 || target_hit==1 || src_hit ==1 || traceback_started == 1) {
+				//check_mut.unlock();
 				search_mut.unlock();
 				return;
-			} 
+			}
 			Sblck s_t = c.get_switch(cur_x, cur_y);
-		
+			//check_mut.unlock();
+
 			for(i=0; i< width; ++i) {
 				switch(cur_heading){
 					case NORTH:
 						if(s_t.get_pin(SOUTH, NORTH, i) != UNAVAIL) {
-							if(s_t.is_side_avail(NORTH)==1 && should_search_side(NORTH) == 1) {
-								s_t.set_switch(NORTH, SOUTH, i);
+							if(s_t.is_side_avail(NORTH)==1) {
+								s.dest=NORTH;
+								s.src=SOUTH;
+								s.pin=i;
+								holds.push_back(s);
 								nflag=1;
 							}
-
-							if(s_t.is_side_avail(EAST)==1 && should_search_side(EAST) == 1) {
-								s_t.set_switch(EAST, SOUTH, i);
+							if(s_t.is_side_avail(EAST)==1) {
+								s.dest=EAST;
+								s.src=SOUTH;
+								s.pin=i;
+								holds.push_back(s);
 								eflag=1;
 							}
-							if(s_t.is_side_avail(WEST)==1 && should_search_side(WEST) == 1) {
-								s_t.set_switch(WEST, SOUTH, i);
+							if(s_t.is_side_avail(WEST)==1) {
+								s.dest=WEST;
+								s.src=SOUTH;
+								s.pin=i;
+								holds.push_back(s);
 								wflag=1;
 							}
 						}
@@ -458,16 +476,25 @@ void Router::thr_search(Circuit &c, int x1, int y1, int heading1) {
 
 					case EAST:
 						if(s_t.get_pin(WEST, EAST, i) != UNAVAIL) {
-							if(s_t.is_side_avail(NORTH)==1 && should_search_side(NORTH) == 1) {
-								s_t.set_switch(NORTH, WEST, i);
+							if(s_t.is_side_avail(NORTH)==1) {
+								s.dest=NORTH;
+								s.src=WEST;
+								s.pin=i;
+								holds.push_back(s);
 								nflag=1;
 							}
-							if(s_t.is_side_avail(EAST)==1 && should_search_side(EAST) == 1) {
-								s_t.set_switch(EAST, WEST, i);
+							if(s_t.is_side_avail(EAST)==1) {
+								s.dest=EAST;
+								s.src=WEST;
+								s.pin=i;
+								holds.push_back(s);								
 								eflag=1;
 							}
-							if(s_t.is_side_avail(SOUTH)==1 && should_search_side(SOUTH) == 1) {
-								s_t.set_switch(SOUTH, WEST, i);
+							if(s_t.is_side_avail(SOUTH)==1) {
+								s.dest=SOUTH;
+								s.src=WEST;
+								s.pin=i;
+								holds.push_back(s);								
 								sflag=1;						
 							}
 						}
@@ -475,71 +502,100 @@ void Router::thr_search(Circuit &c, int x1, int y1, int heading1) {
 
 					case SOUTH:
 						if(s_t.get_pin(NORTH, SOUTH, i) != UNAVAIL) {
-							if(s_t.is_side_avail(SOUTH)==1 && should_search_side(SOUTH) == 1) {
-								s_t.set_switch(SOUTH, NORTH, i);
+							if(s_t.is_side_avail(SOUTH)==1) {
+								s.dest=SOUTH;
+								s.src=NORTH;
+								s.pin=i;
+								holds.push_back(s);							
 								sflag=1;
 							}
-							if(s_t.is_side_avail(EAST)==1 && should_search_side(EAST) == 1) {
-								s_t.set_switch(EAST, NORTH, i);
+							if(s_t.is_side_avail(EAST)==1) {
+								s.dest=EAST;
+								s.src=NORTH;
+								s.pin=i;
+								holds.push_back(s);
 								eflag=1;						
 							}
-							if(s_t.is_side_avail(WEST)==1 && should_search_side(WEST) == 1) {
-								s_t.set_switch(WEST, NORTH, i);
-								wflag=1;						
+							if(s_t.is_side_avail(WEST)==1) {
+								s.dest=WEST;
+								s.src=NORTH;
+								s.pin=i;
+								holds.push_back(s);
+								wflag=1;					
 							}
 						}
 						break;
 
 					case WEST:
 						if(s_t.get_pin(EAST, WEST, i) != UNAVAIL) {
-							if(s_t.is_side_avail(NORTH)==1 && should_search_side(NORTH) == 1) {
-								s_t.set_switch(NORTH, EAST, i);
+							if(s_t.is_side_avail(NORTH)==1) {
+								s.dest=NORTH;
+								s.src=EAST;
+								s.pin=i;
+								holds.push_back(s);
 								nflag=1;						
 							}
-							if(s_t.is_side_avail(SOUTH)==1 && should_search_side(SOUTH) == 1) {
-								s_t.set_switch(SOUTH, EAST, i);
+							if(s_t.is_side_avail(SOUTH)==1) {
+								s.dest=SOUTH;
+								s.src=EAST;
+								s.pin=i;
+								holds.push_back(s);
 								sflag=1;												
 							}
-							if(s_t.is_side_avail(WEST)==1 && should_search_side(WEST) == 1) {
-								s_t.set_switch(WEST, EAST, i);
+							if(s_t.is_side_avail(WEST)==1) {
+								s.dest=WEST;
+								s.src=EAST;
+								s.pin=i;
+								holds.push_back(s);
 								wflag=1;						
 							}
 						}
 						break;
 				}
 			}
-		
-		s_t.was_used();
-		update_side_likelihood(nflag, eflag, sflag, wflag);
 
-		if(nflag==1) {
-			if(c.get_switch(cur_x-1, cur_y).check_used() == 0) {
-				add_to_queue(sblcks_x, sblcks_y, going, cur_x-1, cur_y, NORTH);
+		update_side_likelihood(nflag, eflag, sflag, wflag);
+		s_t = c.get_switch(cur_x, cur_y);
+		if(s_t.check_used()==0){
+			for(search_hold s: holds) {
+				if(should_search_side(s.dest)==1){
+					s_t.set_switch(s.dest, s.src, s.pin);
+				}
 			}
-			nflag=0;
-		} 
-		if(sflag==1) {
-			if(c.get_switch(cur_x+1, cur_y).check_used() == 0) {
-				add_to_queue(sblcks_x, sblcks_y, going, cur_x+1, cur_y, SOUTH);
+			s_t.was_used();
+			if(nflag==1) {
+				if(c.get_switch(cur_x-1, cur_y).check_used() == 0) {
+					add_to_queue(sblcks_x, sblcks_y, going, cur_x-1, cur_y, NORTH);
+				}
+				nflag=0;
+			} 
+			if(sflag==1) {
+				if(c.get_switch(cur_x+1, cur_y).check_used() == 0) {
+					add_to_queue(sblcks_x, sblcks_y, going, cur_x+1, cur_y, SOUTH);
+				}
+				sflag=0;
 			}
-			sflag=0;
+			if(eflag==1) {
+				if(c.get_switch(cur_x, cur_y+1).check_used() == 0) {
+					add_to_queue(sblcks_x, sblcks_y, going, cur_x, cur_y+1, EAST);
+				}
+				eflag=0;	
+			}
+			if(wflag==1) {
+				if(c.get_switch(cur_x, cur_y-1).check_used() == 0){
+					add_to_queue(sblcks_x, sblcks_y, going, cur_x, cur_y-1, WEST);
+				}
+				wflag=0;			
+			}			
 		}
-		if(eflag==1) {
-			if(c.get_switch(cur_x, cur_y+1).check_used() == 0) {
-				add_to_queue(sblcks_x, sblcks_y, going, cur_x, cur_y+1, EAST);
-			}
-			eflag=0;	
-		}
-		if(wflag==1) {
-			if(c.get_switch(cur_x, cur_y-1).check_used() == 0){
-				add_to_queue(sblcks_x, sblcks_y, going, cur_x, cur_y-1, WEST);
-			}
-			wflag=0;			
-		}
-		
+		holds.clear();
 		++HEAD;
+		cur_x=sblcks_x[HEAD];
+		cur_y=sblcks_y[HEAD];
+		cur_heading=going[HEAD];
 	}
-	search_mut.unlock();
+		search_mut.unlock();
+
 }
 
 void Router::begin_search(Circuit &c, int x, int y, int init_dir) {
@@ -549,9 +605,8 @@ void Router::begin_search(Circuit &c, int x, int y, int init_dir) {
 			if(is_parallel == 'F'){
 				search(c, x, y, WEST, x, y+1, EAST);
 			} else {
-				thread st1= thread(&Router::thr_search, this, ref(c), x, y, WEST);
-				thread st2= thread(&Router::thr_search, this, ref(c), x, y+1, EAST);
-
+				thread st1= thread(&Router::thr_search, this, ref(c), x, y, WEST, 1);
+				thread st2= thread(&Router::thr_search, this, ref(c), x, y+1, EAST, 2);
 				st1.join();
 				st2.join();
 			}
@@ -560,9 +615,8 @@ void Router::begin_search(Circuit &c, int x, int y, int init_dir) {
 			if(is_parallel == 'F') {
 				search(c, x, y+1, NORTH, x+1, y+1, SOUTH);
 			} else {
-				thread st1= thread(&Router::thr_search, this, ref(c), x, y+1, NORTH);
-				thread st2= thread(&Router::thr_search, this, ref(c), x+1, y+1, SOUTH);
-
+				thread st1= thread(&Router::thr_search, this, ref(c), x, y+1, NORTH, 1);
+				thread st2= thread(&Router::thr_search, this, ref(c), x+1, y+1, SOUTH, 2);
 				st1.join();
 				st2.join();
 			}
@@ -571,9 +625,8 @@ void Router::begin_search(Circuit &c, int x, int y, int init_dir) {
 			if(is_parallel == 'F') {
 				search(c, x+1, y, WEST, x+1, y+1, EAST);
 			} else {
-				thread st1= thread(&Router::thr_search, this, ref(c), x+1, y, WEST);
-				thread st2= thread(&Router::thr_search, this, ref(c), x+1, y+1, EAST);
-
+				thread st1= thread(&Router::thr_search, this, ref(c), x+1, y, WEST, 1);
+				thread st2= thread(&Router::thr_search, this, ref(c), x+1, y+1, EAST, 2);
 				st1.join();
 				st2.join();
 			}
@@ -582,9 +635,8 @@ void Router::begin_search(Circuit &c, int x, int y, int init_dir) {
 			if(is_parallel == 'F') {
 				search(c, x, y, NORTH, x+1, y, SOUTH);
 			} else {
-				thread st1= thread(&Router::thr_search, this, ref(c), x, y, NORTH);
-				thread st2= thread(&Router::thr_search, this, ref(c), x+1, y, SOUTH);
-
+				thread st1= thread(&Router::thr_search, this, ref(c), x, y, NORTH, 1);
+				thread st2= thread(&Router::thr_search, this, ref(c), x+1, y, SOUTH, 2);
 				st1.join();
 				st2.join();
 			}
