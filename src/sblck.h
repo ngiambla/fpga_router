@@ -40,7 +40,6 @@ class Sblck {
 		vector<int>*& get_side(int dir);
 		int wilton(int dest, int src, int pin);
 
-
 	public:
 		Sblck(int x, int y, int width, char type) {
 
@@ -96,8 +95,7 @@ class Sblck {
 
 			}
 		}
-
-
+		
 		void display_block();
 		void display_id();
 		void connect_track(Track &trck, int side);

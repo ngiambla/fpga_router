@@ -5,12 +5,13 @@
 #include <chrono>
 
 /* MUTEX */
-mutex trace_mut;
+mutex search_mut;
 
 /** add_block_to_path(): takes the current switch path, and switch block
  ~  and appends the switch block to the switch path
  ~  provided it isn't within the path already.
  **/ 
+
 int add_block_to_path(Spath &cur_path, Sblck sblck) {
 	for(Sblck s : cur_path) {
 		if(sblck.get_x() == s.get_x() && sblck.get_y() == s.get_y()) {
@@ -53,7 +54,6 @@ void Router::traceback(Circuit &c, int x, int y, int pin, int side, int weight) 
 				if(c.get_type() == 'f') {
 					for(i=0; i<c.get_width(); ++i) {
 						if(blck.get_pin(dir, cur_side, i) == 0 ) {
-							printf("Source Pin Found.\n");
 							Path p(blck.get_pin_pos(dir, cur_side, cur_pin), dir, blck);
 							Path p2(i, cur_side, blck);
 							cur_path_p.push_back(p2);
@@ -68,7 +68,6 @@ void Router::traceback(Circuit &c, int x, int y, int pin, int side, int weight) 
 					}
 				} else {
 					if(blck.get_pin(dir, cur_side, cur_pin)==0) {
-						printf("Source Pin Found.\n");
 						Path p(blck.get_pin_pos(dir, cur_side, cur_pin), dir, blck);
 						Path p2(cur_pin, cur_side, blck);
 						
@@ -173,14 +172,11 @@ int Router::check_for_target(Circuit &c, int x, int y, int came_from, int HEAD) 
 							Path p(i, j, p_trg);
 							cur_path.push_back(p);
 							all_paths.push_back(cur_path);
-							printf("Traced.\n");
-
 							target_hit=1;
 							return 1;
 
 						} else {
 							p_trg.set_pin(j, side, i, UNAVAIL);
-							printf("Beginning Traceback.\n");
 							traceback(c, x, y, p_trg.get_pin_pos(j,side,i), j, p_trg.get_pin(side, i));
 
 							target_hit=1;
@@ -239,9 +235,7 @@ void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, in
 		cur_y=sblcks_y[HEAD];
 		cur_heading=going[HEAD];
 
-		//printf("[router] -- inspecting [%d][%d], heading [%d]\n", cur_x, cur_y, cur_heading);
 		if(check_for_target(c, cur_x, cur_y, cur_heading, HEAD) == 1) {
-			printf("[SEARCH] --Target Acquired.\n");
 			break;
 		}
 
@@ -351,24 +345,21 @@ void Router::search_p(Circuit &c, int x1, int y1, int heading1) {
 	sblcks_y.push_back(y1);
 	going.push_back(heading1);
 
-
-	trace_mut.lock();
+	search_mut.lock();
 	while(HEAD < sblcks_x.size()) {
-		cur_x=sblcks_x[HEAD];
-		cur_y=sblcks_y[HEAD];
-		cur_heading=going[HEAD];
 
-		//printf("[router] -- inspecting [%d][%d], heading [%d]\n", cur_x, cur_y, cur_heading);
+			cur_x=sblcks_x[HEAD];
+			cur_y=sblcks_y[HEAD];
+			cur_heading=going[HEAD];
 
-		ans=check_for_target(c, cur_x, cur_y, cur_heading, HEAD);
-
-		if(ans == 1 || ans == -1 || target_hit==1 || src_hit ==1 || traceback_started == 1) {
-			trace_mut.unlock();
-			return;
-		}
-
-		Sblck s_t = c.get_switch(cur_x, cur_y);
-
+			ans=check_for_target(c, cur_x, cur_y, cur_heading, HEAD);
+			if(ans == 1 || ans == -1 || target_hit==1 || src_hit ==1 || traceback_started == 1) {
+				search_mut.unlock();
+				return;
+			}
+			
+			Sblck s_t = c.get_switch(cur_x, cur_y);
+		
 			for(i=0; i< width; ++i) {
 				switch(cur_heading){
 					case NORTH:
@@ -441,7 +432,7 @@ void Router::search_p(Circuit &c, int x1, int y1, int heading1) {
 						break;
 				}
 			}
-
+		
 			s_t.was_used();
 
 		if(nflag==1) {
@@ -468,15 +459,14 @@ void Router::search_p(Circuit &c, int x1, int y1, int heading1) {
 			}
 			wflag=0;			
 		}
+		
 		++HEAD;
 	}
-		trace_mut.unlock();
+	search_mut.unlock();
 
 }
 
 void Router::begin_search(Circuit &c, int x, int y, int init_dir) {
-	printf("[INFO] -- Beginning Search.\n");
-
 
 	switch(init_dir) {
 		case NORTH:
@@ -542,14 +532,16 @@ Paths_t Router::begin_routing(Circuit &c) {
 
 		Lblck ltrg = c.get_lblck(net[3], net[4]);
 		ltrg.set_as_target(net[5]-1);
-		printf("[router] Routing lblck[%d][%d]@[%d] --> lblck[%d][%d]@[%d]\n", net[0],net[1],net[2]-1,net[3],net[4],net[5]-1);
+        printf("[INFO] Routing... [%3.2f%%]\r", (float)cur_net*100/(float)netlist.size());
+        fflush(stdout);
 
 		begin_search(c, net[0], net[1], net[2]-1);
 
 		if(target_hit!=1) {
 			printf("No Target Found.\n");
 			target_hit=-1;
-			return all_paths;
+			//return all_paths;
+			break;
 		} else {
 			target_hit=0;
 			src_hit=0;
@@ -560,6 +552,7 @@ Paths_t Router::begin_routing(Circuit &c) {
 	}
 	auto finish = std::chrono::high_resolution_clock::now();
 	chrono::duration<double> elapsed = finish - start;
+    printf("Routing Complete.\n");
 
 	printf("\n[INFO] --Elapsed Time: [%f]\n",elapsed.count());
 	c.compute_stats();

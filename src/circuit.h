@@ -15,6 +15,7 @@ typedef vector<Srow> Sgrid;
 typedef vector<Track> Trow;
 typedef vector<Trow> Tracks;
 
+
 class Circuit {
 	private:
 		Lgrid lgrid;
@@ -63,7 +64,7 @@ class Circuit {
 			for(i=0; i<size+1; ++i) {
 				Srow srow;
 				for(j=0; j<size+1; ++j) {
-					srow.push_back(Sblck(i,j,width, type));
+					srow.push_back(Sblck(i, j, width, type));
 				}
 				sgrid.push_back(srow);
 			}

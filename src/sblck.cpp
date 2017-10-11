@@ -2,6 +2,8 @@
 #include "track.h"
 #include "sblck.h"
 
+mutex switch_mut, set_mut;
+
 void Sblck::connect_track(Track &trck, int side) {
 	switch(side) {
 		case NORTH:
@@ -224,7 +226,6 @@ int Sblck::set_switch(int dest, int src, int pin) {
 	} else {
 		printf("Not Used....\n");
 	}
-
 }
 
 void Sblck::was_used() {

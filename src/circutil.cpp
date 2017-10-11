@@ -24,7 +24,6 @@ CConfig init_util(char * filename, int width_reduction) {
     FILE *fp;
     int decode_stage=0;
     char line[128];
-    cout<<width_reduction<<"\n";
 	fp = fopen(filename, "r");
 	if (fp) {
 	    while (fgets (line , 128 , fp) != NULL) {
@@ -93,7 +92,7 @@ int main(int argc, char *argv[]) {
 			printf("-- init.\n\n");
 			while(reroute_enabled==1){
 				config=init_util(filename, reroute_tries);
-				config.reorder_nets();
+				//config.reorder_nets();
 				config.display_config();
 
 				circuit=gen_circuit(config, argv[4][0]);
@@ -112,7 +111,7 @@ int main(int argc, char *argv[]) {
 				}
 			}
 
-			config.display_config();
+			cout << "[INFO] Track Width: "<< config.get_track_width() << "\n";
 
 			if(argv[8][0]=='n') {
 				printf("-- Going to Display.\n");
