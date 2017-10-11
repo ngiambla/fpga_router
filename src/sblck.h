@@ -115,6 +115,7 @@ class Sblck {
 		int get_y();
 		void reset();
 		void was_used();
+		int check_used();
 
 };
 

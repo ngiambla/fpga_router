@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
 			printf("-- init.\n\n");
 			while(reroute_enabled==1){
 				config=init_util(filename, reroute_tries);
-				//config.reorder_nets();
+				config.reorder_nets();
 				config.display_config();
 
 				circuit=gen_circuit(config, argv[4][0]);
@@ -153,7 +153,7 @@ void drawscreen (void) {
 	int grid_size=circuit.get_size();
 	int width_size = circuit.get_width();
 	float inc_wire=(float)blck_sz/(2*width_size);
-	int offset=inc_wire;
+	float offset=(float)inc_wire;
 	int lblck_w_offset=25;
 
 	int start_path=0;
@@ -213,12 +213,7 @@ void drawscreen (void) {
 					if(sblck.is_side_avail(EAST)==1){
 						for(k=0;k<width_size*2; ++k) {
 							if(k%2==0){
-
-								if(sblck.get_pin(EAST, k/2)== UNAVAIL){
-									setcolor(GREEN);
-								} else {
-									setcolor(BLACK);
-								}
+								setcolor(BLACK);
 								drawline (10+j*blck_sz,10+offset+i*blck_sz+k*inc_wire,110+j*blck_sz,10+offset+i*blck_sz+k*inc_wire);
 							}
 						}
@@ -230,11 +225,7 @@ void drawscreen (void) {
 					if(sblck.is_side_avail(SOUTH)==1){
 						for(k=0;k<width_size*2; ++k) {
 							if(k%2==0){
-								if(sblck.get_pin(SOUTH, k/2)==UNAVAIL){
-									setcolor(GREEN);
-								} else {
-									setcolor(BLACK);
-								}
+								setcolor(BLACK);
 								drawline (10+offset+j*blck_sz+k*inc_wire,10+i*blck_sz,10+offset+j*blck_sz+k*inc_wire,110+i*blck_sz);
 							}
 						}
@@ -249,7 +240,7 @@ void drawscreen (void) {
 		set_color(colors[cur_path]);
 		start_path=0;
 		for(Path ele : path) {
-			//ele.display_path();
+
 			Sblck s=ele.get_sblck();
 			switch(ele.get_side()) {
 				case NORTH:
@@ -400,7 +391,6 @@ void drawscreen (void) {
 			}
 			++start_path;
 		}
-		//printf("\n\n");
 		cur_path++;
 	}
 

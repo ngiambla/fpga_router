@@ -14,12 +14,10 @@ typedef vector<Path_t> Paths_t;
 class Router {
 	private:
 
-		vector< vector<int> > netlist;
-		//Spaths complete_paths;
+		vector< vector<int> > netlist;	// holds current netlist.
+		Paths_t all_paths;				// holds paths.
 
-		Paths_t all_paths;
-
-		vector<int> sblcks_x_p;
+		vector<int> sblcks_x_p;	
 		vector<int> sblcks_y_p;
 		vector<int> going_p;
 		int src_hit;
@@ -27,6 +25,11 @@ class Router {
 		int traceback_started;
 		
 		char is_parallel;
+
+		int north_search_count;
+		int east_search_count;
+		int south_search_count;
+		int west_search_count;
 
 		
 		void add_to_queue(vector<int> &_x, vector<int> &_y, vector<int> &_g, int x1, int y1, int dir);
@@ -45,9 +48,17 @@ class Router {
 			this->target_hit=0;
 			this->src_hit=0;
 			this->traceback_started=0;
+
+			north_search_count=0;
+			east_search_count=0;
+			south_search_count=0;
+			west_search_count=0;
+
 		}
 		
 		Paths_t begin_routing(Circuit &c);
+		int should_search_side();			// proposed improvement
+		void update_side_likelihood();		//
 		int was_routable();
 };
 

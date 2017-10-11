@@ -231,3 +231,7 @@ void Sblck::was_used() {
 	was_seen=1;
 }
 
+int Sblck::check_used() {
+	return was_seen;
+}
+
