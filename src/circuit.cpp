@@ -48,8 +48,11 @@ void Circuit::reset() {
 void Circuit::compute_stats() {
 	int i, j, k, side;
 	int num_unused_wires=0;
+	double num_unused_wires_avg=0;
+	int unused_wires=0;
 	int avg_capacity_per_sblock=0;
 	int total_capacity=0;
+	int all_wires=0;
 
 	printf("..-*[STATS]*-..\n");
 
@@ -60,6 +63,7 @@ void Circuit::compute_stats() {
 				if(k!=UNAVAIL){
 					num_unused_wires++;
 				}
+				++all_wires;
 			}
 		}
 	}
@@ -70,10 +74,11 @@ void Circuit::compute_stats() {
 				if(k!=UNAVAIL){
 					num_unused_wires++;
 				}
+				++all_wires;
 			}
 		}
 	}
-	num_unused_wires=num_unused_wires/(2*(size)*(size-1));
+	num_unused_wires_avg=(double)num_unused_wires/(double)all_wires;
 
 	for(i=0 ;i<size+1; ++i) {
 		for(j=0; j<size+1; ++j) {
@@ -91,9 +96,11 @@ void Circuit::compute_stats() {
 	avg_capacity_per_sblock=avg_capacity_per_sblock/((size+1)*(size+1));
 	total_capacity=4*width;
 
-	printf(">> Average Number of Unused Segments/Track ==> [%4d]\n", num_unused_wires);
-	printf(">> Total Capacity Per Block                ==> [%4d]\n", total_capacity);
-	printf(">> Average Capacity per Block              ==> [%4d]\n", avg_capacity_per_sblock);
+	printf(">> Total Number of Wires                   ==> [%6d]\n", all_wires);
+	printf(">> Number of Used Wires                    ==> [%6d]\n", all_wires-num_unused_wires);
+	printf(">> Average Number of Unused Segments       ==> [%6.2f]\n", num_unused_wires_avg);
+	printf(">> Total Capacity Per Block                ==> [%6d]\n", total_capacity);
+	printf(">> Average Capacity per Block              ==> [%6d]\n", avg_capacity_per_sblock);
 	printf("###### END ######\n");
 }
 
