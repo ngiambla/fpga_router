@@ -2,8 +2,6 @@
 #include "track.h"
 #include "sblck.h"
 
-mutex switch_mut, set_mut;
-
 void Sblck::connect_track(Track &trck, int side) {
 	switch(side) {
 		case NORTH:
