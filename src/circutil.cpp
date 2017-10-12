@@ -70,6 +70,7 @@ Circuit gen_circuit(CConfig config, char type) {
 int main(int argc, char *argv[]) {
 	int reroute_enabled=1;
 	int reroute_tries=0;
+	int init=0;
 	char filename[20]="circuits/";
 	char buf[120]="";
 
@@ -92,12 +93,17 @@ int main(int argc, char *argv[]) {
 			printf("-- init.\n\n");
 			while(reroute_enabled==1){
 				config=init_util(filename, reroute_tries);
-				//config.reorder_nets();
-				config.display_config();
+				config.reorder_nets();
+				if(init==0){
+					config.display_config();
+					init=1;
+				}
+				
 
 				circuit=gen_circuit(config, argv[4][0]);
 				Router router(config.get_netlist(), argv[6][0]);
 				paths=router.begin_routing(circuit);
+				cout << "[INFO] Track Width: "<< config.get_track_width() << "\n";
 
 				if(argv[8][0]=='n'){
 					reroute_enabled=0;
@@ -110,8 +116,16 @@ int main(int argc, char *argv[]) {
 					}
 				}
 			}
+			if(argv[8][0]=='y') {
+				config=init_util(filename, reroute_tries-1);
+				config.display_config();
 
-			cout << "[INFO] Track Width: "<< config.get_track_width() << "\n";
+				circuit=gen_circuit(config, argv[4][0]);
+				Router router(config.get_netlist(), argv[6][0]);
+				paths=router.begin_routing(circuit);	
+				cout << "[INFO] Track Width: "<< config.get_track_width() << "\n";
+				argv[8][0]='n';			
+			}
 
 			if(argv[8][0]=='n') {
 				printf("-- Going to Display.\n");
@@ -400,7 +414,7 @@ void drawscreen (void) {
 
 vector<int> generate_unique_colors(int how_many) {
 	int i=0;
-	float frequency=0.2;
+	float frequency=0.25;
 	unsigned char red, green, blue;
 	vector<int> colors;
 	for (i = 0; i < how_many; ++i) {

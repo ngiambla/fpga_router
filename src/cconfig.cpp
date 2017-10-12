@@ -1,12 +1,14 @@
 
 #include "cconfig.h"
 #include <cmath>
+#include <time.h>       /* time */
 
 int get_squared_distance(int x1, int y1, int x2, int y2) {
 	return pow((x2-x1), 2)+ pow((y2-y1), 2);
 }
 
 void CConfig::reorder_nets() {
+	srand (time(NULL));
 	int rand_idx, i, can_add=1;
 	vector< vector<int> > new_net;
 	vector<int> idx_swaps;

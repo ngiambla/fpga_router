@@ -31,6 +31,11 @@ class Router {
 		int south_search_count;
 		int west_search_count;
 
+		int n_trace_count;
+		int e_trace_count;
+		int w_trace_count;
+		int s_trace_count;
+
 		
 		void add_to_queue(vector<int> &_x, vector<int> &_y, vector<int> &_g, int x1, int y1, int dir);
 		void begin_search(Circuit &c, int x, int y, int init_dir);
