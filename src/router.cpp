@@ -5,7 +5,7 @@
 #include <chrono>
 
 /* MUTEX */
-mutex search_mut, check_mut, next_mut;
+std::mutex search_mut, check_mut, next_mut;
 
 /** should_search_side(): performs the calculation 
 ~   that necessitates a probabilistic estimate if a search should follow a given path
@@ -403,6 +403,7 @@ void Router::search(Circuit &c, int x1, int y1, int heading1, int x2, int y2, in
 			wflag=0;			
 		}
 		++HEAD;
+
 	}
 }
 
