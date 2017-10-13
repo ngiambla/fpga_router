@@ -7,6 +7,7 @@ This project implements a FPGA router using a Maze Routing Algorithm, optimized 
 To compile this project, begin a terminal process, navigate to the `src` directory and enter the following commands:
 
 ```bash
+$ scl enable devtoolset-2 'bash'
 $ make clean
 $ make
 ```
@@ -31,7 +32,7 @@ The options provided are:
 3. -isParallel
   This sets the option to run the router with parallel execution. `T` is for true, `F` is for false.
 4. -t
-  To test the minimum width of the track, you can simply supply the argument `t` to test the width, or `f` to execute the FPGA with no min-width testing.
+  To test the minimum width of the track, you can simply supply the argument `y` to test the width, or `n` to execute the router with no min-width testing.
 
 
 ## Author ##
