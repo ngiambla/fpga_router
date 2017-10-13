@@ -12,7 +12,7 @@ $ make clean
 $ make
 ```
 
-The compliation should complete with few warnings.
+The compliation should complete with few warnings. If any changes are made, ensure to execute `make clean` first, before `make`-ing the executable
 
 
 ## Usage ##
@@ -20,7 +20,7 @@ The compliation should complete with few warnings.
 To run this simulation of the FPGA router, start a terminal process, navigate to the `src` directory and enter:
 
 ```bash
-$ ./cirutils -file filename -switch [f | w] -isParallel [T | F] -t [y | n]
+$ ./circutils -file filename -switch [f | w] -isParallel [T | F] -t [y | n]
 ```
 
 The options provided are:
