@@ -10,7 +10,6 @@
 using namespace std;
 
 #define UNAVAIL -50			//
-#define USED -2				//
 #define AVAIL -1			//
 
 #define TARGET -25			// for lblck

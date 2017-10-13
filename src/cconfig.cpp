@@ -9,7 +9,7 @@ int get_squared_distance(int x1, int y1, int x2, int y2) {
 
 void CConfig::reorder_nets() {
 	srand (time(NULL));
-	int rand_idx, i, can_add=1;
+	int rand_idx, i;
 	vector< vector<int> > new_net;
 	vector<int> idx_swaps;
 	printf("[cconfig] -- reordering nets.\n");

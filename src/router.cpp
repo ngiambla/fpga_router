@@ -99,7 +99,6 @@ int add_block_to_path(Spath &cur_path, Sblck sblck) {
 void Router::traceback(Circuit &c, int x, int y, int pin, int side, int weight) {
 	int i, dir;
 	int cur_weight=weight;
-	int tmp_weight;
 	int cur_side=side;
 	int cur_pin=pin;
 	int next_side;

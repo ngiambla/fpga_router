@@ -5,10 +5,12 @@ This project implements a FPGA router using a Maze Routing Algorithm, optimized 
 
 ## Setup ##
 To compile this project, begin a terminal process, navigate to the `src` directory and enter the following commands:
- ```bash
- $ make clean
- $ make
- ```
+
+```bash
+$ make clean
+$ make
+```
+
 The compliation should complete with few warnings.
 
 

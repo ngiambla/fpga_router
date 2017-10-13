@@ -160,7 +160,7 @@ int main(int argc, char *argv[]) {
 
 
 void drawscreen (void) {
-	int i, j, k, g=0;
+	int i, j, k;
 	int cur_path=0; 
 	int blck_sz=100;
 	int grid_size=circuit.get_size();
@@ -176,7 +176,7 @@ void drawscreen (void) {
 	vector<int> colors;
 
 	set_draw_mode (DRAW_NORMAL);
-	
+
 	clearscreen();
 	setlinewidth (2);
 	//Draw Logic Blocks

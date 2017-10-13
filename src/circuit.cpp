@@ -49,7 +49,6 @@ void Circuit::compute_stats() {
 	int i, j, k, side;
 	int num_unused_wires=0;
 	double num_unused_wires_avg=0;
-	int unused_wires=0;
 	int avg_capacity_per_sblock=0;
 	int total_capacity=0;
 	int all_wires=0;
