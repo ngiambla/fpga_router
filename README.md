@@ -20,7 +20,7 @@ The compliation should complete with few warnings. If any changes are made, ensu
 To run this simulation of the FPGA router, start a terminal process, navigate to the `src` directory and enter:
 
 ```bash
-$ ./circutils -file filename -switch [f | w] -isParallel [T | F] -t [y | n]
+$ ./circutil -file filename -switch [f | w] -isParallel [T | F] -t [y | n]
 ```
 
 The options provided are:
